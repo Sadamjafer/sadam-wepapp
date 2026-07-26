@@ -1,0 +1,6 @@
+{
+  "name": "SimpleLedger - دفتر الحسابات الذكي",
+  "description": "تطبيق ويب لإدارة الحسابات والمصروفات والإيرادات والديون مع دعم تعدد المستخدمين والمحلات.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
