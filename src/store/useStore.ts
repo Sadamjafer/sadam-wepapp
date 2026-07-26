@@ -46,6 +46,7 @@ interface AppState {
   addProfitDeduction: (deduction: Omit<ProfitDeduction, 'id'>) => void;
   updateProfitDeduction: (id: string, deduction: Partial<Omit<ProfitDeduction, 'id'>>) => void;
   deleteProfitDeduction: (id: string) => void;
+  importBackupData: (data: Partial<AppState>) => void;
 }
 
 export const useStore = create<AppState>()(
@@ -271,6 +272,20 @@ export const useStore = create<AppState>()(
       })),
       deleteProfitDeduction: (id) => set((state) => ({
         profitDeductions: state.profitDeductions.filter(d => d.id !== id)
+      })),
+      importBackupData: (data) => set((state) => ({
+        passcodes: data.passcodes || state.passcodes,
+        stores: data.stores || state.stores,
+        transactions: data.transactions || state.transactions,
+        incomeRecords: data.incomeRecords || state.incomeRecords,
+        expenseCategories: data.expenseCategories || state.expenseCategories,
+        clients: data.clients || state.clients,
+        clientOperations: data.clientOperations || state.clientOperations,
+        profitDeductions: data.profitDeductions || state.profitDeductions,
+        auth: {
+          ...state.auth,
+          currentStoreId: data.stores && data.stores.length > 0 ? data.stores[0].id : state.auth.currentStoreId
+        }
       })),
     }),
     {
