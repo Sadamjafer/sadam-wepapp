@@ -17,7 +17,8 @@ const provider = new GoogleAuthProvider();
 provider.addScope('https://www.googleapis.com/auth/drive.file');
 
 // In-memory token cache as required by safety guidelines
-let cachedAccessToken: string | null = null;
+// but we will persist to localStorage so it works on reload for up to 1 hour
+let cachedAccessToken: string | null = localStorage.getItem('google_drive_token');
 let isSigningIn = false;
 
 export const initAuthListener = (
@@ -33,6 +34,7 @@ export const initAuthListener = (
       }
     } else {
       cachedAccessToken = null;
+      localStorage.removeItem('google_drive_token');
       if (onAuthFailure) onAuthFailure();
     }
   });
@@ -47,6 +49,7 @@ export const signInWithGoogleDrive = async (): Promise<{ user: User; accessToken
       throw new Error('فشل الحصول على رمز الوصول من جوجل.');
     }
     cachedAccessToken = credential.accessToken;
+    localStorage.setItem('google_drive_token', cachedAccessToken);
     return { user: result.user, accessToken: cachedAccessToken };
   } catch (error) {
     console.error('Google Sign-In Error:', error);
@@ -59,6 +62,12 @@ export const signInWithGoogleDrive = async (): Promise<{ user: User; accessToken
 export const signOutGoogleDrive = async () => {
   await signOut(firebaseAuth);
   cachedAccessToken = null;
+  localStorage.removeItem('google_drive_token');
+};
+
+export const clearCachedToken = () => {
+  cachedAccessToken = null;
+  localStorage.removeItem('google_drive_token');
 };
 
 export const getCachedToken = () => cachedAccessToken;
@@ -86,6 +95,9 @@ export async function findBackupFile(token: string): Promise<BackupFileInfo | nu
   });
 
   if (!response.ok) {
+    if (response.status === 401) {
+      throw new Error('401_UNAUTHORIZED');
+    }
     const errText = await response.text();
     throw new Error(`خطأ أثناء البحث عن النسخة الاحتياطية: ${errText}`);
   }
@@ -120,6 +132,7 @@ export async function saveBackupToDrive(token: string, data: any): Promise<Backu
     });
 
     if (!metadataResponse.ok) {
+      if (metadataResponse.status === 401) throw new Error('401_UNAUTHORIZED');
       const errText = await metadataResponse.text();
       throw new Error(`خطأ أثناء إنشاء ملف النسخ الاحتياطي: ${errText}`);
     }
@@ -140,6 +153,7 @@ export async function saveBackupToDrive(token: string, data: any): Promise<Backu
   });
 
   if (!uploadResponse.ok) {
+    if (uploadResponse.status === 401) throw new Error('401_UNAUTHORIZED');
     const errText = await uploadResponse.text();
     throw new Error(`خطأ أثناء رفع بيانات النسخ الاحتياطي: ${errText}`);
   }
@@ -179,6 +193,7 @@ export async function downloadBackupFromDrive(token: string, fileId: string): Pr
   });
 
   if (!response.ok) {
+    if (response.status === 401) throw new Error('401_UNAUTHORIZED');
     const errText = await response.text();
     throw new Error(`خطأ أثناء تنزيل ملف النسخ الاحتياطي: ${errText}`);
   }

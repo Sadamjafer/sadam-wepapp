@@ -17,6 +17,7 @@ export function Income() {
   const [editingRecord, setEditingRecord] = useState<IncomeRecord | null>(null);
   const [deletingRecordId, setDeletingRecordId] = useState<string | null>(null);
   const [notification, setNotification] = useState<{ message: string; type: 'success' | 'danger' } | null>(null);
+  const [saveSuccessMsg, setSaveSuccessMsg] = useState('');
   
   const [amount, setAmount] = useState('');
   const [units, setUnits] = useState('');
@@ -39,6 +40,7 @@ export function Income() {
     setUnits('');
     setNotes('');
     setDate(new Date().toISOString().split('T')[0]);
+    setSaveSuccessMsg('');
     setIsModalOpen(true);
   };
 
@@ -58,6 +60,7 @@ export function Income() {
     const recordDate = parseInputDateToISO(date);
 
     if (editingRecord) {
+      if (!window.confirm('هل أنت متأكد من حفظ التعديلات؟')) return;
       updateIncomeRecord(editingRecord.id, {
         amount: parseFloat(amount),
         units: parseFloat(units) || 0,
@@ -65,6 +68,11 @@ export function Income() {
         date: recordDate
       });
       showNotification('تم تعديل الإيراد بنجاح');
+      setIsModalOpen(false);
+      setEditingRecord(null);
+      setAmount('');
+      setUnits('');
+      setNotes('');
     } else {
       const record = {
         storeId: auth.currentStoreId,
@@ -85,14 +93,14 @@ export function Income() {
         date: recordDate,
         incomeRecordId: recordId
       });
-      showNotification('تمت إضافة الإيراد بنجاح');
-    }
+      
+      setSaveSuccessMsg('تم حفظ الإيراد بنجاح!');
+      setTimeout(() => setSaveSuccessMsg(''), 3000);
 
-    setIsModalOpen(false);
-    setEditingRecord(null);
-    setAmount('');
-    setUnits('');
-    setNotes('');
+      setAmount('');
+      setUnits('');
+      setNotes('');
+    }
   };
 
   const handleDelete = () => {
@@ -188,6 +196,12 @@ export function Income() {
       {/* Modal for Add / Edit */}
       <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title={editingRecord ? "تعديل بيانات الإيراد" : "إضافة إيراد جديد"}>
         <form onSubmit={handleSubmit} className="space-y-4">
+          {saveSuccessMsg && (
+            <div className="p-3 bg-green-50 text-green-700 dark:bg-green-950/30 dark:text-green-400 border border-green-200 dark:border-green-800/50 rounded-xl flex items-center gap-2 text-sm font-medium animate-in fade-in zoom-in duration-200">
+              <CheckCircle2 className="w-5 h-5 shrink-0" />
+              <span>{saveSuccessMsg}</span>
+            </div>
+          )}
           <div className="space-y-2">
             <Label>التاريخ</Label>
             <Input type="date" required value={date} onChange={e => setDate(e.target.value)} />

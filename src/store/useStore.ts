@@ -16,7 +16,9 @@ interface AppState {
   clients: Client[];
   clientOperations: ClientOperation[];
   profitDeductions: ProfitDeduction[];
+  lastUpdated: string | null;
   
+  setLastUpdated: (date: string) => void;
   login: (passcode: string) => boolean;
   logout: () => void;
   setStoreId: (id: string) => void;
@@ -62,6 +64,9 @@ export const useStore = create<AppState>()(
       clients: [],
       clientOperations: [],
       profitDeductions: [],
+      lastUpdated: null,
+
+      setLastUpdated: (date: string) => set({ lastUpdated: date }),
 
       login: (passcode) => {
         const { passcodes, stores } = get();
@@ -282,6 +287,7 @@ export const useStore = create<AppState>()(
         clients: data.clients || state.clients,
         clientOperations: data.clientOperations || state.clientOperations,
         profitDeductions: data.profitDeductions || state.profitDeductions,
+        lastUpdated: data.lastUpdated || new Date().toISOString(),
         auth: {
           ...state.auth,
           currentStoreId: data.stores && data.stores.length > 0 ? data.stores[0].id : state.auth.currentStoreId

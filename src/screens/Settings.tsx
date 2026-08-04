@@ -11,9 +11,10 @@ import {
   signInWithGoogleDrive, 
   signOutGoogleDrive, 
   findBackupFile, 
-  saveBackupToDrive, 
-  downloadBackupFromDrive, 
+  saveBackupToDrive,
+  downloadBackupFromDrive,
   getCachedToken,
+  clearCachedToken,
   BackupFileInfo 
 } from '../lib/driveBackup';
 
@@ -22,6 +23,7 @@ export function Settings() {
   
   const [passForm, setPassForm] = useState(passcodes);
   const [isStoreModalOpen, setIsStoreModalOpen] = useState(false);
+  const [saveSuccessMsg, setSaveSuccessMsg] = useState('');
   const [storeName, setStoreName] = useState('');
 
   // Google Drive backup states
@@ -37,8 +39,13 @@ export function Settings() {
     try {
       const file = await findBackupFile(token);
       setBackupInfo(file);
-    } catch (err) {
+    } catch (err: any) {
       console.error('Error checking existing backup:', err);
+      if (err.message && err.message.includes('401')) {
+        setGoogleUser(null);
+        setDriveToken(null);
+        clearCachedToken();
+      }
     }
   };
 
@@ -116,11 +123,13 @@ export function Settings() {
         clientOperations: state.clientOperations,
         profitDeductions: state.profitDeductions,
         backupVersion: '1.0',
-        backupDate: new Date().toISOString()
+        backupDate: new Date().toISOString(),
+        lastUpdated: new Date().toISOString()
       };
 
       const file = await saveBackupToDrive(token, backupData);
       setBackupInfo(file);
+      state.setLastUpdated(file.modifiedTime);
       setBackupStatus({ type: 'success', text: 'تم إنشاء النسخة الاحتياطية وحفظها بنجاح!' });
     } catch (err: any) {
       console.error('Backup creation failed:', err);
@@ -153,6 +162,7 @@ export function Settings() {
       if (!data || (!data.transactions && !data.stores)) {
         throw new Error('ملف النسخة الاحتياطية غير صالح أو تالف.');
       }
+      data.lastUpdated = backupInfo.modifiedTime;
 
       importBackupData(data);
       setBackupStatus({ type: 'success', text: 'تم استرجاع النسخة الاحتياطية وتحديث جميع البيانات بنجاح!' });
@@ -170,6 +180,7 @@ export function Settings() {
 
   const handleSavePasscodes = (e: FormEvent) => {
     e.preventDefault();
+    if (!window.confirm('هل أنت متأكد من رغبتك في تعديل كلمات المرور والصلاحيات؟')) return;
     updatePasscodes(passForm);
     alert('تم حفظ كلمات المرور بنجاح');
   };
@@ -178,7 +189,8 @@ export function Settings() {
     e.preventDefault();
     if (!storeName) return;
     addStore(storeName);
-    setIsStoreModalOpen(false);
+    setSaveSuccessMsg('تم إضافة المحل بنجاح!');
+    setTimeout(() => setSaveSuccessMsg(''), 3000);
     setStoreName('');
   };
 
@@ -362,7 +374,11 @@ export function Settings() {
         <CardHeader>
           <div className="flex justify-between items-center">
             <CardTitle>إدارة المحلات</CardTitle>
-            <Button size="sm" onClick={() => setIsStoreModalOpen(true)}>
+            <Button size="sm" onClick={() => {
+              setStoreName('');
+              setSaveSuccessMsg('');
+              setIsStoreModalOpen(true);
+            }}>
               <Plus className="w-4 h-4 me-1" /> إضافة محل
             </Button>
           </div>
@@ -373,7 +389,7 @@ export function Settings() {
               <div key={store.id} className="flex justify-between items-center p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl">
                 <span className="font-medium">{store.name}</span>
                 {stores.length > 1 && (
-                  <Button variant="ghost" size="icon" className="text-red-500 hover:text-red-600 hover:bg-red-50" onClick={() => deleteStore(store.id)}>
+                  <Button variant="ghost" size="icon" className="text-red-500 hover:text-red-600 hover:bg-red-50" onClick={() => { if(window.confirm('هل أنت متأكد من رغبتك في حذف هذا المحل؟ لا يمكن التراجع عن هذا الإجراء.')) deleteStore(store.id); }}>
                     <Trash2 className="w-4 h-4" />
                   </Button>
                 )}
@@ -411,6 +427,12 @@ export function Settings() {
 
       <Modal isOpen={isStoreModalOpen} onClose={() => setIsStoreModalOpen(false)} title="إضافة محل جديد">
         <form onSubmit={handleAddStore} className="space-y-4">
+          {saveSuccessMsg && (
+            <div className="p-3 bg-green-50 text-green-700 dark:bg-green-950/30 dark:text-green-400 border border-green-200 dark:border-green-800/50 rounded-xl flex items-center gap-2 text-sm font-medium animate-in fade-in zoom-in duration-200">
+              <CheckCircle2 className="w-5 h-5 shrink-0" />
+              <span>{saveSuccessMsg}</span>
+            </div>
+          )}
           <div className="space-y-2">
             <Label>اسم المحل</Label>
             <Input required value={storeName} onChange={e => setStoreName(e.target.value)} />

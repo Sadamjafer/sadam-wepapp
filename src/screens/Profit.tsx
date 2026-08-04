@@ -70,6 +70,7 @@ export function Profit() {
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingDeductionId, setEditingDeductionId] = useState<string | null>(null);
+  const [saveSuccessMsg, setSaveSuccessMsg] = useState('');
   const [deletingItem, setDeletingItem] = useState<{
     id: string;
     description?: string;
@@ -360,6 +361,7 @@ export function Profit() {
     setAmount('');
     setDesc('');
     setDeductionDate(new Date().toISOString().split('T')[0]);
+    setSaveSuccessMsg('');
     setIsModalOpen(true);
   };
 
@@ -395,12 +397,17 @@ export function Profit() {
     const parsedAmount = parseFloat(amount);
 
     if (editingDeductionId) {
+      if (!window.confirm('هل أنت متأكد من حفظ التعديلات؟')) return;
       updateProfitDeduction(editingDeductionId, {
         amount: parsedAmount,
         description: desc,
         date: parsedDate
       });
       showNotification('تم تعديل بيانات الخصم بنجاح');
+      setIsModalOpen(false);
+      setEditingDeductionId(null);
+      setAmount('');
+      setDesc('');
     } else {
       addProfitDeduction({
         storeId: auth.currentStoreId,
@@ -408,13 +415,12 @@ export function Profit() {
         description: desc,
         date: parsedDate
       });
-      showNotification('تمت إضافة الخصم / السحب بنجاح');
+      setSaveSuccessMsg('تم حفظ البيانات بنجاح!');
+      setTimeout(() => setSaveSuccessMsg(''), 3000);
+      
+      setAmount('');
+      setDesc('');
     }
-
-    setIsModalOpen(false);
-    setAmount('');
-    setDesc('');
-    setEditingDeductionId(null);
   };
 
   return (
@@ -860,6 +866,12 @@ export function Profit() {
         title={editingDeductionId ? "تعديل سحب / خصم الأرباح" : "تسجيل سحب أو خصم من الأرباح"}
       >
         <form onSubmit={handleSubmit} className="space-y-4">
+          {saveSuccessMsg && (
+            <div className="p-3 bg-green-50 text-green-700 dark:bg-green-950/30 dark:text-green-400 border border-green-200 dark:border-green-800/50 rounded-xl flex items-center gap-2 text-sm font-medium animate-in fade-in zoom-in duration-200">
+              <CheckCircle2 className="w-5 h-5 shrink-0" />
+              <span>{saveSuccessMsg}</span>
+            </div>
+          )}
           <div className="space-y-2">
             <Label>المبلغ (₪)</Label>
             <NumberInput 

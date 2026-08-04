@@ -6,7 +6,7 @@ import { Input } from '../components/ui/Input';
 import { NumberInput } from '../components/ui/NumberInput';
 import { Label } from '../components/ui/Label';
 import { formatCurrency, parseInputDateToISO } from '../lib/utils';
-import { Plus, Tag, Edit2, Trash2, AlertTriangle, CheckCircle2, Calendar, LayoutGrid, ListFilter, Search } from 'lucide-react';
+import { Plus, Tag, Edit2, Trash2, AlertTriangle, CheckCircle2, Calendar, LayoutGrid, ListFilter, Search, ChevronDown, ChevronUp } from 'lucide-react';
 import { Modal } from '../components/ui/Modal';
 import { Transaction } from '../types';
 
@@ -18,11 +18,16 @@ export function Expenses() {
   const [viewMode, setViewMode] = useState<ViewMode>('DATE');
   const [searchQuery, setSearchQuery] = useState('');
 
+  const [expandedCategories, setExpandedCategories] = useState<Record<string, boolean>>({});
+  const [expandedDates, setExpandedDates] = useState<Record<string, boolean>>({});
+
   const [isCatModalOpen, setIsCatModalOpen] = useState(false);
+  const [saveCatSuccessMsg, setSaveCatSuccessMsg] = useState('');
   const [isExpModalOpen, setIsExpModalOpen] = useState(false);
   const [editingExpense, setEditingExpense] = useState<Transaction | null>(null);
   const [deletingExpenseId, setDeletingExpenseId] = useState<string | null>(null);
   const [notification, setNotification] = useState<{ message: string; type: 'success' | 'danger' } | null>(null);
+  const [saveSuccessMsg, setSaveSuccessMsg] = useState('');
   
   const [catName, setCatName] = useState('');
   
@@ -46,9 +51,9 @@ export function Expenses() {
     e.preventDefault();
     if (!catName || !auth.currentStoreId) return;
     addExpenseCategory({ storeId: auth.currentStoreId, name: catName });
-    setIsCatModalOpen(false);
+    setSaveCatSuccessMsg('تم حفظ التصنيف بنجاح!');
+    setTimeout(() => setSaveCatSuccessMsg(''), 3000);
     setCatName('');
-    showNotification('تمت إضافة التصنيف بنجاح');
   };
 
   const handleOpenAddExp = () => {
@@ -57,6 +62,7 @@ export function Expenses() {
     setCategoryId('');
     setNotes('');
     setDate(new Date().toISOString().split('T')[0]);
+    setSaveSuccessMsg('');
     setIsExpModalOpen(true);
   };
 
@@ -76,6 +82,7 @@ export function Expenses() {
     const expDate = parseInputDateToISO(date);
     
     if (editingExpense) {
+      if (!window.confirm('هل أنت متأكد من حفظ التعديلات؟')) return;
       updateTransaction(editingExpense.id, {
         title: cat?.name || 'مصروف',
         amount: parseFloat(amount),
@@ -84,6 +91,11 @@ export function Expenses() {
         date: expDate
       });
       showNotification('تم تعديل المصروف بنجاح');
+      setIsExpModalOpen(false);
+      setEditingExpense(null);
+      setAmount('');
+      setCategoryId('');
+      setNotes('');
     } else {
       addTransaction({
         storeId: auth.currentStoreId,
@@ -94,14 +106,15 @@ export function Expenses() {
         notes,
         date: expDate
       });
-      showNotification('تمت إضافة المصروف بنجاح');
+      
+      setSaveSuccessMsg('تم حفظ المصروف بنجاح!');
+      setTimeout(() => setSaveSuccessMsg(''), 3000);
+      
+      setAmount('');
+      setCategoryId('');
+      setNotes('');
+      // We do not close the modal here, keep it open.
     }
-
-    setIsExpModalOpen(false);
-    setEditingExpense(null);
-    setAmount('');
-    setCategoryId('');
-    setNotes('');
   };
 
   const handleDeleteExp = () => {
@@ -205,7 +218,11 @@ export function Expenses() {
         </div>
         {canManage && (
           <div className="flex gap-2">
-            <Button variant="outline" onClick={() => setIsCatModalOpen(true)}>
+            <Button variant="outline" onClick={() => {
+              setCatName('');
+              setSaveCatSuccessMsg('');
+              setIsCatModalOpen(true);
+            }}>
               <Tag className="w-4 h-4 me-2" />
               تصنيف جديد
             </Button>
@@ -279,7 +296,10 @@ export function Expenses() {
         <div className="space-y-4">
           {expensesGroupedByCategory.map((group, idx) => (
             <Card key={idx} className="overflow-hidden border border-slate-200 dark:border-slate-800">
-              <CardHeader className="bg-slate-50/80 dark:bg-slate-800/40 py-3 px-6 flex flex-row items-center justify-between border-b dark:border-slate-700/50">
+              <CardHeader 
+                className="bg-slate-50/80 dark:bg-slate-800/40 py-3 px-6 flex flex-row items-center justify-between border-b dark:border-slate-700/50 cursor-pointer select-none hover:bg-slate-100/80 dark:hover:bg-slate-800/60 transition-colors"
+                onClick={() => setExpandedCategories(prev => ({ ...prev, [group.categoryId]: !prev[group.categoryId] }))}
+              >
                 <div className="flex items-center gap-2">
                   <span className="w-3 h-3 rounded-full bg-primary-500" />
                   <CardTitle className="text-base font-bold flex flex-wrap items-center gap-2">
@@ -300,12 +320,18 @@ export function Expenses() {
                     {group.items.length} معاملة
                   </span>
                 </div>
-                <div className="text-sm font-bold text-red-600 dark:text-red-400">
-                  إجمالي المصروف: {formatCurrency(group.total, isRestricted)}
+                <div className="flex items-center gap-3 text-sm font-bold text-red-600 dark:text-red-400">
+                  <span>إجمالي المصروف: {formatCurrency(group.total, isRestricted)}</span>
+                  {expandedCategories[group.categoryId] ? (
+                    <ChevronUp className="w-5 h-5 text-slate-400" />
+                  ) : (
+                    <ChevronDown className="w-5 h-5 text-slate-400" />
+                  )}
                 </div>
               </CardHeader>
-              <CardContent className="p-0">
-                <div className="overflow-x-auto">
+              {expandedCategories[group.categoryId] && (
+                <CardContent className="p-0">
+                  <div className="overflow-x-auto">
                   <table className="w-full text-sm text-right">
                     <thead className="text-xs text-slate-400 bg-slate-50/40 dark:bg-slate-900/30">
                       <tr>
@@ -362,6 +388,7 @@ export function Expenses() {
                   </table>
                 </div>
               </CardContent>
+              )}
             </Card>
           ))}
 
@@ -380,16 +407,25 @@ export function Expenses() {
         <div className="space-y-4">
           {expensesGroupedByDate.map((group, idx) => (
             <Card key={idx} className="overflow-hidden border border-slate-200 dark:border-slate-800">
-              <CardHeader className="bg-slate-50/80 dark:bg-slate-800/40 py-3 px-6 flex flex-row items-center justify-between border-b dark:border-slate-700/50">
+              <CardHeader 
+                className="bg-slate-50/80 dark:bg-slate-800/40 py-3 px-6 flex flex-row items-center justify-between border-b dark:border-slate-700/50 cursor-pointer select-none hover:bg-slate-100/80 dark:hover:bg-slate-800/60 transition-colors"
+                onClick={() => setExpandedDates(prev => ({ ...prev, [group.dateKey]: !prev[group.dateKey] }))}
+              >
                 <div className="flex items-center gap-2">
                   <Calendar className="w-4 h-4 text-primary-500" />
                   <CardTitle className="text-base font-bold">{group.formattedDate}</CardTitle>
                   <span className="text-xs font-medium text-slate-400 font-mono">({group.dateKey})</span>
                 </div>
-                <div className="text-sm font-bold text-red-600 dark:text-red-400">
-                  مجموع اليوم: {formatCurrency(group.total, isRestricted)}
+                <div className="flex items-center gap-3 text-sm font-bold text-red-600 dark:text-red-400">
+                  <span>مجموع اليوم: {formatCurrency(group.total, isRestricted)}</span>
+                  {expandedDates[group.dateKey] ? (
+                    <ChevronUp className="w-5 h-5 text-slate-400" />
+                  ) : (
+                    <ChevronDown className="w-5 h-5 text-slate-400" />
+                  )}
                 </div>
               </CardHeader>
+              {expandedDates[group.dateKey] && (
               <CardContent className="p-0">
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm text-right">
@@ -446,6 +482,7 @@ export function Expenses() {
                   </table>
                 </div>
               </CardContent>
+              )}
             </Card>
           ))}
 
@@ -534,6 +571,12 @@ export function Expenses() {
       {/* Modal Add Category */}
       <Modal isOpen={isCatModalOpen} onClose={() => setIsCatModalOpen(false)} title="إضافة تصنيف جديد">
         <form onSubmit={handleAddCat} className="space-y-4">
+          {saveCatSuccessMsg && (
+            <div className="p-3 bg-green-50 text-green-700 dark:bg-green-950/30 dark:text-green-400 border border-green-200 dark:border-green-800/50 rounded-xl flex items-center gap-2 text-sm font-medium animate-in fade-in zoom-in duration-200">
+              <CheckCircle2 className="w-5 h-5 shrink-0" />
+              <span>{saveCatSuccessMsg}</span>
+            </div>
+          )}
           <div className="space-y-2">
             <Label>اسم التصنيف</Label>
             <Input required value={catName} onChange={e => setCatName(e.target.value)} />
@@ -545,6 +588,12 @@ export function Expenses() {
       {/* Modal Add/Edit Expense */}
       <Modal isOpen={isExpModalOpen} onClose={() => setIsExpModalOpen(false)} title={editingExpense ? "تعديل بيانات المصروف" : "إضافة مصروف جديد"}>
         <form onSubmit={handleSaveExp} className="space-y-4">
+          {saveSuccessMsg && (
+            <div className="p-3 bg-green-50 text-green-700 dark:bg-green-950/30 dark:text-green-400 border border-green-200 dark:border-green-800/50 rounded-xl flex items-center gap-2 text-sm font-medium animate-in fade-in zoom-in duration-200">
+              <CheckCircle2 className="w-5 h-5 shrink-0" />
+              <span>{saveSuccessMsg}</span>
+            </div>
+          )}
           <div className="space-y-2">
             <Label>التاريخ</Label>
             <Input type="date" required value={date} onChange={e => setDate(e.target.value)} />

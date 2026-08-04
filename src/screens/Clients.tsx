@@ -44,6 +44,7 @@ export function Clients() {
   const [clientName, setClientName] = useState('');
   const [clientType, setClientType] = useState<ClientType>('CLIENT');
   const [linkedExpenseCategoryId, setLinkedExpenseCategoryId] = useState<string>('');
+  const [saveClientSuccessMsg, setSaveClientSuccessMsg] = useState('');
 
   const [isOpModalOpen, setIsOpModalOpen] = useState(false);
   const [editingOp, setEditingOp] = useState<ClientOperation | null>(null);
@@ -52,6 +53,7 @@ export function Clients() {
   const [opAmount, setOpAmount] = useState('');
   const [opDesc, setOpDesc] = useState('');
   const [opDate, setOpDate] = useState(() => new Date().toISOString().split('T')[0]);
+  const [saveOpSuccessMsg, setSaveOpSuccessMsg] = useState('');
 
   // Delete confirmations
   const [deletingOpId, setDeletingOpId] = useState<string | null>(null);
@@ -114,6 +116,7 @@ export function Clients() {
     const defaultType = typeOverride || (entityFilter === 'SUPPLIER' ? 'SUPPLIER' : 'CLIENT');
     setClientType(defaultType);
     setLinkedExpenseCategoryId('');
+    setSaveClientSuccessMsg('');
     setIsClientModalOpen(true);
   };
 
@@ -150,12 +153,16 @@ export function Clients() {
     const finalLinkedCatId = clientType === 'SUPPLIER' ? (linkedExpenseCategoryId || undefined) : undefined;
 
     if (editingClientId) {
+      if (!window.confirm('هل أنت متأكد من حفظ التعديلات؟')) return;
       updateClient(editingClientId, { 
         name: clientName.trim(), 
         type: clientType,
         linkedExpenseCategoryId: finalLinkedCatId
       });
       showNotification('تم تعديل البيانات بنجاح');
+      setIsClientModalOpen(false);
+      setClientName('');
+      setLinkedExpenseCategoryId('');
     } else {
       addClient({ 
         storeId: auth.currentStoreId, 
@@ -163,11 +170,13 @@ export function Clients() {
         type: clientType,
         linkedExpenseCategoryId: finalLinkedCatId
       });
-      showNotification('تمت إضافة الحساب بنجاح');
+      
+      setSaveClientSuccessMsg('تم حفظ الحساب بنجاح!');
+      setTimeout(() => setSaveClientSuccessMsg(''), 3000);
+      
+      setClientName('');
+      setLinkedExpenseCategoryId('');
     }
-    setIsClientModalOpen(false);
-    setClientName('');
-    setLinkedExpenseCategoryId('');
   };
 
   const handleConfirmDeleteClient = () => {
@@ -186,6 +195,7 @@ export function Clients() {
     setOpAmount('');
     setOpDesc('');
     setOpDate(new Date().toISOString().split('T')[0]);
+    setSaveOpSuccessMsg('');
     setIsOpModalOpen(true);
   };
 
@@ -240,6 +250,7 @@ export function Clients() {
     }
 
     if (editingOp) {
+      if (!window.confirm('هل أنت متأكد من حفظ التعديلات؟')) return;
       updateClientOperation(editingOp.id, {
         clientId: opClientId,
         type: opType,
@@ -249,6 +260,7 @@ export function Clients() {
         expenseTransactionId: linkedTxId
       });
       showNotification('تم تعديل الحركة بنجاح');
+      setIsOpModalOpen(false);
     } else {
       addClientOperation({
         clientId: opClientId,
@@ -258,9 +270,12 @@ export function Clients() {
         date: formattedDate,
         expenseTransactionId: linkedTxId
       });
-      showNotification('تمت إضافة الحركة بنجاح');
+      setSaveOpSuccessMsg('تم حفظ الحركة بنجاح!');
+      setTimeout(() => setSaveOpSuccessMsg(''), 3000);
+      
+      setOpAmount('');
+      setOpDesc('');
     }
-    setIsOpModalOpen(false);
   };
 
   const handleConfirmDeleteOp = () => {
@@ -894,6 +909,12 @@ export function Clients() {
         title={editingClientId ? "تعديل بيانات الحساب" : "إضافة عميل / مورد جديد"}
       >
         <form onSubmit={handleSaveClient} className="space-y-4">
+          {saveClientSuccessMsg && (
+            <div className="p-3 bg-green-50 text-green-700 dark:bg-green-950/30 dark:text-green-400 border border-green-200 dark:border-green-800/50 rounded-xl flex items-center gap-2 text-sm font-medium animate-in fade-in zoom-in duration-200">
+              <CheckCircle2 className="w-5 h-5 shrink-0" />
+              <span>{saveClientSuccessMsg}</span>
+            </div>
+          )}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div className="sm:col-span-2 space-y-2">
               <Label>اسم العميل / المورد</Label>
@@ -981,6 +1002,12 @@ export function Clients() {
         title={editingOp ? "تعديل حركة للعميل / المورد" : "تسجيل حركة دين / سداد"}
       >
         <form onSubmit={handleSaveOp} className="space-y-4">
+          {saveOpSuccessMsg && (
+            <div className="p-3 bg-green-50 text-green-700 dark:bg-green-950/30 dark:text-green-400 border border-green-200 dark:border-green-800/50 rounded-xl flex items-center gap-2 text-sm font-medium animate-in fade-in zoom-in duration-200">
+              <CheckCircle2 className="w-5 h-5 shrink-0" />
+              <span>{saveOpSuccessMsg}</span>
+            </div>
+          )}
           {/* Client Select */}
           <div className="space-y-2">
             <Label>العميل / المورد</Label>
