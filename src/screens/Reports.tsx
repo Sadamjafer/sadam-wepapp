@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, Fragment } from 'react';
 import { useStore } from '../store/useStore';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
@@ -6,13 +6,14 @@ import { Input } from '../components/ui/Input';
 import { Label } from '../components/ui/Label';
 import { formatCurrency, formatMoney } from '../lib/utils';
 import { 
-  PieChart, Pie, Cell, ResponsiveContainer, Tooltip, BarChart, Bar, XAxis, YAxis, CartesianGrid, Legend 
+  PieChart, Pie, Cell, ResponsiveContainer, Tooltip, BarChart, Bar, XAxis, YAxis, CartesianGrid, Legend
 } from 'recharts';
 import { 
-  Calendar, TrendingUp, TrendingDown, DollarSign, Package, FileText, Printer, Filter, Search
+  Calendar, TrendingUp, TrendingDown, DollarSign, Package, FileText, Printer, Filter, Search, ChevronDown, ChevronUp, Download
 } from 'lucide-react';
+import { motion, AnimatePresence } from 'motion/react';
 
-type ReportType = 'daily' | 'monthly' | 'custom';
+type ReportType = 'daily' | 'custom';
 
 export function Reports() {
   const { auth, transactions, incomeRecords, expenseCategories, clientOperations } = useStore();
@@ -20,15 +21,10 @@ export function Reports() {
 
   // Current date helpers
   const todayStr = useMemo(() => new Date().toISOString().split('T')[0], []);
-  const currentMonthStr = useMemo(() => {
-    const d = new Date();
-    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
-  }, []);
 
   // Filter States
-  const [reportType, setReportType] = useState<ReportType>('monthly');
+  const [reportType, setReportType] = useState<ReportType>('daily');
   const [selectedDate, setSelectedDate] = useState<string>(todayStr);
-  const [selectedMonth, setSelectedMonth] = useState<string>(currentMonthStr);
   const [startDate, setStartDate] = useState<string>(() => {
     const d = new Date();
     d.setDate(1); // 1st of current month
@@ -38,6 +34,8 @@ export function Reports() {
 
   const [txTypeFilter, setTxTypeFilter] = useState<'ALL' | 'INCOME' | 'EXPENSE'>('ALL');
   const [searchQuery, setSearchQuery] = useState('');
+  
+  const [expandedCategory, setExpandedCategory] = useState<string | null>(null);
 
   // Store-specific data
   const storeTx = useMemo(() => 
@@ -56,7 +54,7 @@ export function Reports() {
   );
 
   // Quick Preset Handlers
-  const applyPreset = (preset: 'today' | 'yesterday' | 'this_week' | 'this_month' | 'last_month' | 'this_year') => {
+  const applyPreset = (preset: 'today' | 'yesterday' | 'this_week' | 'this_month' | 'last_month') => {
     const now = new Date();
     if (preset === 'today') {
       setReportType('daily');
@@ -75,16 +73,16 @@ export function Reports() {
       setStartDate(monday.toISOString().split('T')[0]);
       setEndDate(todayStr);
     } else if (preset === 'this_month') {
-      setReportType('monthly');
-      setSelectedMonth(currentMonthStr);
-    } else if (preset === 'last_month') {
-      setReportType('monthly');
-      const lm = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-      setSelectedMonth(`${lm.getFullYear()}-${String(lm.getMonth() + 1).padStart(2, '0')}`);
-    } else if (preset === 'this_year') {
       setReportType('custom');
-      setStartDate(`${now.getFullYear()}-01-01`);
+      const first = new Date(now.getFullYear(), now.getMonth(), 1);
+      setStartDate(first.toISOString().split('T')[0]);
       setEndDate(todayStr);
+    } else if (preset === 'last_month') {
+      setReportType('custom');
+      const first = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+      const last = new Date(now.getFullYear(), now.getMonth(), 0);
+      setStartDate(first.toISOString().split('T')[0]);
+      setEndDate(last.toISOString().split('T')[0]);
     }
   };
 
@@ -95,19 +93,14 @@ export function Reports() {
       const start = new Date(parts[0], parts[1] - 1, parts[2], 0, 0, 0, 0);
       const end = new Date(parts[0], parts[1] - 1, parts[2], 23, 59, 59, 999);
       return { start, end, label: `يوم ${selectedDate}` };
-    } else if (reportType === 'monthly') {
-      const [year, month] = selectedMonth.split('-').map(Number);
-      const start = new Date(year, month - 1, 1, 0, 0, 0, 0);
-      const end = new Date(year, month, 0, 23, 59, 59, 999);
-      return { start, end, label: `شهر ${selectedMonth}` };
     } else {
       const sParts = startDate.split('-').map(Number);
       const eParts = endDate.split('-').map(Number);
       const start = new Date(sParts[0], sParts[1] - 1, sParts[2], 0, 0, 0, 0);
       const end = new Date(eParts[0], eParts[1] - 1, eParts[2], 23, 59, 59, 999);
-      return { start, end, label: `الفترة من ${startDate} إلى ${endDate}` };
+      return { start, end, label: `من ${startDate} إلى ${endDate}` };
     }
-  }, [reportType, selectedDate, selectedMonth, startDate, endDate]);
+  }, [reportType, selectedDate, startDate, endDate]);
 
   // Filter transactions within active range
   const filteredTx = useMemo(() => {
@@ -149,92 +142,37 @@ export function Reports() {
 
   // Expense distribution by category
   const expensesByCategory = useMemo(() => {
-    const categoryTotals: { [key: string]: { name: string; total: number; count: number } } = {};
+    const categoryTotals: { [key: string]: { id: string; name: string; total: number; count: number; items: any[] } } = {};
     
     // Initialize with categories
     storeCategories.forEach(cat => {
-      categoryTotals[cat.id] = { name: cat.name, total: 0, count: 0 };
+      categoryTotals[cat.id] = { id: cat.id, name: cat.name, total: 0, count: 0, items: [] };
     });
+    
+    categoryTotals['other'] = { id: 'other', name: 'مصروف عام (بدون تصنيف)', total: 0, count: 0, items: [] };
 
     filteredTx.forEach(tx => {
       if (tx.type === 'EXPENSE') {
         const catId = tx.categoryId || 'other';
         if (!categoryTotals[catId]) {
-          categoryTotals[catId] = { name: tx.title || 'مصروف عام', total: 0, count: 0 };
+          categoryTotals[catId] = { id: catId, name: tx.title || 'مصروف عام', total: 0, count: 0, items: [] };
         }
+        
         const isPayment = (clientOperations || []).some(op => op.expenseTransactionId === tx.id && op.type === 'PAYMENT');
-        if (isPayment) {
-          categoryTotals[catId].total -= tx.amount;
-        } else {
-          categoryTotals[catId].total += tx.amount;
-        }
+        const amount = isPayment ? -tx.amount : tx.amount;
+        
+        categoryTotals[catId].total += amount;
         categoryTotals[catId].count += 1;
+        categoryTotals[catId].items.push({ ...tx, effectiveAmount: amount });
       }
     });
 
-    return Object.values(categoryTotals).filter(item => item.total > 0);
+    return Object.values(categoryTotals)
+      .filter(item => item.total > 0 || item.count > 0)
+      .sort((a, b) => b.total - a.total);
   }, [storeCategories, filteredTx, clientOperations]);
 
   const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#82ca9d', '#e056fd', '#686de0'];
-
-  // Trend Chart Data
-  const trendData = useMemo(() => {
-    if (reportType === 'daily') {
-      // Group by 4-hour intervals or just show single day bar comparison
-      return [
-        { name: activeDateRange.label, الإيرادات: totalIncome, المصروفات: totalExpenses }
-      ];
-    } else if (reportType === 'monthly') {
-      // Group by day of the month
-      const [year, month] = selectedMonth.split('-').map(Number);
-      const daysInMonth = new Date(year, month, 0).getDate();
-      const daysMap = new Map<number, { name: string; الإيرادات: number; المصروفات: number }>();
-
-      for (let i = 1; i <= daysInMonth; i++) {
-        daysMap.set(i, { name: `${i}`, الإيرادات: 0, المصروفات: 0 });
-      }
-
-      filteredTx.forEach(tx => {
-        const day = new Date(tx.date).getDate();
-        if (daysMap.has(day)) {
-          const entry = daysMap.get(day)!;
-          if (tx.type === 'INCOME') entry.الإيرادات += tx.amount;
-          else {
-            const isPayment = (clientOperations || []).some(op => op.expenseTransactionId === tx.id && op.type === 'PAYMENT');
-            if (isPayment) {
-              entry.المصروفات -= tx.amount;
-            } else {
-              entry.المصروفات += tx.amount;
-            }
-          }
-        }
-      });
-
-      return Array.from(daysMap.values());
-    } else {
-      // Custom range: Group by date
-      const dateMap = new Map<string, { name: string; الإيرادات: number; المصروفات: number }>();
-      
-      filteredTx.forEach(tx => {
-        const dateStr = new Date(tx.date).toLocaleDateString('ar-EG', { month: 'numeric', day: 'numeric' });
-        if (!dateMap.has(dateStr)) {
-          dateMap.set(dateStr, { name: dateStr, الإيرادات: 0, المصروفات: 0 });
-        }
-        const entry = dateMap.get(dateStr)!;
-        if (tx.type === 'INCOME') entry.الإيرادات += tx.amount;
-        else {
-          const isPayment = (clientOperations || []).some(op => op.expenseTransactionId === tx.id && op.type === 'PAYMENT');
-          if (isPayment) {
-            entry.المصروفات -= tx.amount;
-          } else {
-            entry.المصروفات += tx.amount;
-          }
-        }
-      });
-
-      return Array.from(dateMap.values());
-    }
-  }, [reportType, activeDateRange, selectedMonth, filteredTx, totalIncome, totalExpenses, clientOperations]);
 
   // Filtered detailed transactions list
   const displayTxList = useMemo(() => {
@@ -244,313 +182,279 @@ export function Reports() {
         tx.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
         (tx.notes && tx.notes.toLowerCase().includes(searchQuery.toLowerCase()));
       return matchesType && matchesSearch;
-    });
+    }).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
   }, [filteredTx, txTypeFilter, searchQuery]);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 pb-12">
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h2 className="text-2xl font-bold">التقارير والإحصائيات</h2>
+          <h2 className="text-2xl font-bold">التقارير المالية</h2>
           <p className="text-sm text-slate-500 mt-1">{activeDateRange.label}</p>
         </div>
-        <Button variant="outline" onClick={() => window.print()} className="print:hidden">
-          <Printer className="w-4 h-4 me-2" />
-          طباعة التقرير
+        <Button onClick={() => window.print()} className="print:hidden bg-primary-600 hover:bg-primary-700 shadow-sm text-white">
+          <Download className="w-4 h-4 me-2" />
+          حفظ كـ PDF / طباعة
         </Button>
       </div>
 
       {/* Report Controls & Filter Card */}
-      <Card className="print:hidden">
-        <CardContent className="p-4 sm:p-6 space-y-4">
-          {/* Quick Preset Buttons */}
-          <div className="flex flex-wrap gap-2 pb-2 border-b border-slate-100 dark:border-slate-700/50">
-            <span className="text-xs font-semibold text-slate-400 self-center me-2">خيارات سريعة:</span>
-            <Button size="sm" variant={reportType === 'daily' && selectedDate === todayStr ? 'default' : 'outline'} onClick={() => applyPreset('today')}>
-              اليوم
-            </Button>
-            <Button size="sm" variant="outline" onClick={() => applyPreset('yesterday')}>
-              الأمس
-            </Button>
-            <Button size="sm" variant="outline" onClick={() => applyPreset('this_week')}>
-              هذا الأسبوع
-            </Button>
-            <Button size="sm" variant={reportType === 'monthly' && selectedMonth === currentMonthStr ? 'default' : 'outline'} onClick={() => applyPreset('this_month')}>
-              هذا الشهر
-            </Button>
-            <Button size="sm" variant="outline" onClick={() => applyPreset('last_month')}>
-              الشهر الماضي
-            </Button>
-            <Button size="sm" variant="outline" onClick={() => applyPreset('this_year')}>
-              هذه السنة
-            </Button>
+      <Card className="print:hidden border-0 shadow-sm ring-1 ring-slate-200/50 dark:ring-slate-800/50">
+        <CardContent className="p-4 sm:p-6 space-y-5">
+          {/* Main Mode Selector */}
+          <div className="flex bg-slate-100 dark:bg-slate-800/50 p-1 rounded-xl w-full max-w-sm mx-auto">
+            <button
+              type="button"
+              onClick={() => { setReportType('daily'); setExpandedCategory(null); }}
+              className={`flex-1 py-2 text-sm font-bold rounded-lg transition-all ${
+                reportType === 'daily' ? 'bg-white dark:bg-slate-700 shadow-sm text-primary-600 dark:text-primary-400' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-800'
+              }`}
+            >
+              تقرير ليوم واحد
+            </button>
+            <button
+              type="button"
+              onClick={() => { setReportType('custom'); setExpandedCategory(null); }}
+              className={`flex-1 py-2 text-sm font-bold rounded-lg transition-all ${
+                reportType === 'custom' ? 'bg-white dark:bg-slate-700 shadow-sm text-primary-600 dark:text-primary-400' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-800'
+              }`}
+            >
+              تقرير لعدة أيام
+            </button>
           </div>
 
-          {/* Mode Selector & Date Inputs */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
-            <div>
-              <Label className="text-xs font-medium mb-1.5 block">نوع التقرير</Label>
-              <div className="flex rounded-xl border border-slate-200 dark:border-slate-700 p-1 bg-slate-50 dark:bg-slate-800">
-                <button
-                  type="button"
-                  onClick={() => setReportType('daily')}
-                  className={`flex-1 py-1.5 text-xs font-medium rounded-lg transition-all ${
-                    reportType === 'daily' ? 'bg-white dark:bg-slate-700 shadow-sm font-bold text-primary-600 dark:text-primary-400' : 'text-slate-600 dark:text-slate-400'
-                  }`}
-                >
-                  يومي
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setReportType('monthly')}
-                  className={`flex-1 py-1.5 text-xs font-medium rounded-lg transition-all ${
-                    reportType === 'monthly' ? 'bg-white dark:bg-slate-700 shadow-sm font-bold text-primary-600 dark:text-primary-400' : 'text-slate-600 dark:text-slate-400'
-                  }`}
-                >
-                  شهري
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setReportType('custom')}
-                  className={`flex-1 py-1.5 text-xs font-medium rounded-lg transition-all ${
-                    reportType === 'custom' ? 'bg-white dark:bg-slate-700 shadow-sm font-bold text-primary-600 dark:text-primary-400' : 'text-slate-600 dark:text-slate-400'
-                  }`}
-                >
-                  فترة محددة
-                </button>
-              </div>
+          <div className="flex flex-wrap items-end gap-4 justify-center sm:justify-start">
+            {/* Quick Preset Buttons */}
+            <div className="flex flex-wrap gap-2 w-full sm:w-auto pb-4 sm:pb-0 sm:border-b-0 border-b border-slate-100 dark:border-slate-800">
+              <Button size="sm" variant={reportType === 'daily' && selectedDate === todayStr ? 'default' : 'outline'} onClick={() => applyPreset('today')}>
+                اليوم
+              </Button>
+              <Button size="sm" variant="outline" onClick={() => applyPreset('yesterday')}>
+                الأمس
+              </Button>
+              <Button size="sm" variant="outline" onClick={() => applyPreset('this_week')}>
+                هذا الأسبوع
+              </Button>
+              <Button size="sm" variant="outline" onClick={() => applyPreset('this_month')}>
+                هذا الشهر
+              </Button>
             </div>
 
-            {/* Date Pickers based on Report Type */}
-            {reportType === 'daily' && (
-              <div className="md:col-span-2">
-                <Label className="text-xs font-medium mb-1.5 block">اختر اليوم</Label>
-                <Input 
-                  type="date" 
-                  value={selectedDate} 
-                  onChange={e => setSelectedDate(e.target.value)} 
-                />
-              </div>
-            )}
-
-            {reportType === 'monthly' && (
-              <div className="md:col-span-2">
-                <Label className="text-xs font-medium mb-1.5 block">اختر الشهر</Label>
-                <Input 
-                  type="month" 
-                  value={selectedMonth} 
-                  onChange={e => setSelectedMonth(e.target.value)} 
-                />
-              </div>
-            )}
-
-            {reportType === 'custom' && (
-              <>
-                <div>
-                  <Label className="text-xs font-medium mb-1.5 block">من تاريخ</Label>
+            {/* Date Pickers */}
+            <div className="flex flex-wrap items-end gap-3 flex-1">
+              {reportType === 'daily' ? (
+                <div className="w-full sm:w-auto flex-1 max-w-[200px]">
+                  <Label className="text-xs font-medium mb-1.5 block text-slate-500">اختر اليوم</Label>
                   <Input 
                     type="date" 
-                    value={startDate} 
-                    onChange={e => setStartDate(e.target.value)} 
+                    value={selectedDate} 
+                    onChange={e => setSelectedDate(e.target.value)} 
+                    className="h-10"
                   />
                 </div>
-                <div>
-                  <Label className="text-xs font-medium mb-1.5 block">إلى تاريخ</Label>
-                  <Input 
-                    type="date" 
-                    value={endDate} 
-                    onChange={e => setEndDate(e.target.value)} 
-                  />
-                </div>
-              </>
-            )}
+              ) : (
+                <>
+                  <div className="w-full sm:w-auto flex-1 max-w-[200px]">
+                    <Label className="text-xs font-medium mb-1.5 block text-slate-500">من تاريخ</Label>
+                    <Input 
+                      type="date" 
+                      value={startDate} 
+                      onChange={e => setStartDate(e.target.value)} 
+                      className="h-10"
+                    />
+                  </div>
+                  <div className="w-full sm:w-auto flex-1 max-w-[200px]">
+                    <Label className="text-xs font-medium mb-1.5 block text-slate-500">إلى تاريخ</Label>
+                    <Input 
+                      type="date" 
+                      value={endDate} 
+                      onChange={e => setEndDate(e.target.value)} 
+                      className="h-10"
+                    />
+                  </div>
+                </>
+              )}
+            </div>
           </div>
         </CardContent>
       </Card>
 
       {/* Key Metrics Overview Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
-        {/* Total Income */}
-        <Card className="bg-emerald-50/50 border-emerald-200/60 dark:bg-emerald-950/20 dark:border-emerald-800/40">
-          <CardContent className="p-4 flex flex-col justify-between">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <Card className="bg-emerald-50/80 border-emerald-200/60 dark:bg-emerald-900/20 dark:border-emerald-800/40 shadow-none">
+          <CardContent className="p-5 flex flex-col justify-between">
             <div className="flex justify-between items-center text-emerald-600 dark:text-emerald-400">
-              <span className="text-xs font-bold">إجمالي الإيرادات</span>
-              <TrendingUp className="w-5 h-5" />
+              <span className="text-sm font-bold">إجمالي الإيرادات</span>
+              <TrendingUp className="w-5 h-5 opacity-75" />
             </div>
-            <div className="mt-3">
-              <div className="text-xl sm:text-2xl font-bold text-emerald-700 dark:text-emerald-300">
+            <div className="mt-4">
+              <div className="text-2xl font-black text-emerald-700 dark:text-emerald-300 tracking-tight">
                 {formatCurrency(totalIncome, isRestricted)}
               </div>
             </div>
           </CardContent>
         </Card>
 
-        {/* Total Expenses */}
-        <Card className="bg-rose-50/50 border-rose-200/60 dark:bg-rose-950/20 dark:border-rose-800/40">
-          <CardContent className="p-4 flex flex-col justify-between">
+        <Card className="bg-rose-50/80 border-rose-200/60 dark:bg-rose-900/20 dark:border-rose-800/40 shadow-none">
+          <CardContent className="p-5 flex flex-col justify-between">
             <div className="flex justify-between items-center text-rose-600 dark:text-rose-400">
-              <span className="text-xs font-bold">إجمالي المصروفات</span>
-              <TrendingDown className="w-5 h-5" />
+              <span className="text-sm font-bold">إجمالي المصروفات</span>
+              <TrendingDown className="w-5 h-5 opacity-75" />
             </div>
-            <div className="mt-3">
-              <div className="text-xl sm:text-2xl font-bold text-rose-700 dark:text-rose-300">
+            <div className="mt-4">
+              <div className="text-2xl font-black text-rose-700 dark:text-rose-300 tracking-tight">
                 {formatCurrency(totalExpenses, isRestricted)}
               </div>
             </div>
           </CardContent>
         </Card>
 
-        {/* Net Profit */}
-        <Card className={`border ${
+        <Card className={`border shadow-none ${
           netProfit >= 0 
-            ? 'bg-blue-50/50 border-blue-200/60 dark:bg-blue-950/20 dark:border-blue-800/40' 
-            : 'bg-red-50/50 border-red-200/60 dark:bg-red-950/20 dark:border-red-800/40'
+            ? 'bg-blue-50/80 border-blue-200/60 dark:bg-blue-900/20 dark:border-blue-800/40' 
+            : 'bg-red-50/80 border-red-200/60 dark:bg-red-900/20 dark:border-red-800/40'
         }`}>
-          <CardContent className="p-4 flex flex-col justify-between">
+          <CardContent className="p-5 flex flex-col justify-between">
             <div className={`flex justify-between items-center ${netProfit >= 0 ? 'text-blue-600 dark:text-blue-400' : 'text-red-600 dark:text-red-400'}`}>
-              <span className="text-xs font-bold">صافي الربح</span>
-              <DollarSign className="w-5 h-5" />
+              <span className="text-sm font-bold">صافي الربح</span>
+              <DollarSign className="w-5 h-5 opacity-75" />
             </div>
-            <div className="mt-3">
-              <div className={`text-xl sm:text-2xl font-bold ${netProfit >= 0 ? 'text-blue-700 dark:text-blue-300' : 'text-red-700 dark:text-red-300'}`}>
+            <div className="mt-4">
+              <div className={`text-2xl font-black tracking-tight ${netProfit >= 0 ? 'text-blue-700 dark:text-blue-300' : 'text-red-700 dark:text-red-300'}`}>
                 {formatCurrency(netProfit, isRestricted)}
               </div>
             </div>
           </CardContent>
         </Card>
 
-        {/* Total Units */}
-        <Card className="bg-purple-50/50 border-purple-200/60 dark:bg-purple-950/20 dark:border-purple-800/40">
-          <CardContent className="p-4 flex flex-col justify-between">
+        <Card className="bg-purple-50/80 border-purple-200/60 dark:bg-purple-900/20 dark:border-purple-800/40 shadow-none">
+          <CardContent className="p-5 flex flex-col justify-between">
             <div className="flex justify-between items-center text-purple-600 dark:text-purple-400">
-              <span className="text-xs font-bold">إجمالي الوحدات</span>
-              <Package className="w-5 h-5" />
+              <span className="text-sm font-bold">إجمالي الوحدات</span>
+              <Package className="w-5 h-5 opacity-75" />
             </div>
-            <div className="mt-3">
-              <div className="text-xl sm:text-2xl font-bold text-purple-700 dark:text-purple-300">
+            <div className="mt-4">
+              <div className="text-2xl font-black text-purple-700 dark:text-purple-300 tracking-tight">
                 {formatMoney(totalUnits, isRestricted)}
               </div>
             </div>
           </CardContent>
         </Card>
-
-        {/* Total Operations */}
-        <Card className="col-span-2 sm:col-span-1 bg-slate-50 border-slate-200/60 dark:bg-slate-800/50 dark:border-slate-700/50">
-          <CardContent className="p-4 flex flex-col justify-between">
-            <div className="flex justify-between items-center text-slate-600 dark:text-slate-400">
-              <span className="text-xs font-bold">عدد المعاملات</span>
-              <FileText className="w-5 h-5" />
-            </div>
-            <div className="mt-3">
-              <div className="text-xl sm:text-2xl font-bold text-slate-800 dark:text-slate-200">
-                {filteredTx.length}
-              </div>
-            </div>
-          </CardContent>
-        </Card>
       </div>
 
-      {/* Charts Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Income vs Expenses Bar Chart */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base font-bold flex items-center gap-2">
-              <TrendingUp className="w-4 h-4 text-emerald-500" />
-              مقارنة الإيرادات والمصروفات ({activeDateRange.label})
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="h-72">
-            {trendData.length > 0 && (totalIncome > 0 || totalExpenses > 0) ? (
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={trendData} margin={{ top: 20, right: 10, left: 10, bottom: 5 }}>
-                  <CartesianGrid strokeDasharray="3 3" opacity={0.2} />
-                  <XAxis dataKey="name" fontSize={12} />
-                  <YAxis hide={isRestricted} fontSize={12} />
-                  <Tooltip formatter={(value: number) => formatCurrency(value, isRestricted)} />
-                  <Legend wrapperStyle={{ fontSize: '12px' }} />
-                  <Bar dataKey="الإيرادات" fill="#10b981" radius={[4, 4, 0, 0]} />
-                  <Bar dataKey="المصروفات" fill="#ef4444" radius={[4, 4, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
-            ) : (
-              <div className="h-full flex items-center justify-center text-slate-400 text-sm">
-                لا توجد بيانات للفترة المحددة
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Expenses Category Pie Chart */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base font-bold flex items-center gap-2">
-              <TrendingDown className="w-4 h-4 text-rose-500" />
-              توزيع المصروفات حسب التصنيف
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="h-72">
-            {expensesByCategory.length > 0 ? (
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={expensesByCategory}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={55}
-                    outerRadius={90}
-                    paddingAngle={4}
-                    dataKey="total"
-                    nameKey="name"
-                  >
-                    {expensesByCategory.map((_, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                    ))}
-                  </Pie>
-                  <Tooltip formatter={(value: number) => formatCurrency(value, isRestricted)} />
-                  <Legend wrapperStyle={{ fontSize: '12px' }} />
-                </PieChart>
-              </ResponsiveContainer>
-            ) : (
-              <div className="h-full flex items-center justify-center text-slate-400 text-sm">
-                لا توجد مصروفات مسجلة للفترة المحددة
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Expense Category Summary Breakdown Table */}
+      {/* Multi-Day Detailed Expenses Aggregation (Only visible if there's data) */}
       {expensesByCategory.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base font-bold">تفاصيل المصروفات حسب التصنيف</CardTitle>
+        <Card className="border-0 shadow-sm ring-1 ring-slate-200/50 dark:ring-slate-800/50 overflow-hidden">
+          <CardHeader className="bg-slate-50/50 dark:bg-slate-800/20 border-b border-slate-100 dark:border-slate-800">
+            <CardTitle className="text-lg font-bold flex items-center gap-2">
+              <PieChart className="w-5 h-5 text-primary-500" />
+              إجمالي المصروفات حسب التصنيف
+              {reportType === 'custom' && <span className="text-xs font-normal text-slate-500 ms-2">(اضغط على التصنيف لعرض تفاصيله بالتواريخ)</span>}
+            </CardTitle>
           </CardHeader>
           <CardContent className="p-0">
             <div className="overflow-x-auto">
               <table className="w-full text-sm text-right">
                 <thead className="bg-slate-50 dark:bg-slate-800/50 text-slate-500 border-b dark:border-slate-700/50">
                   <tr>
-                    <th className="px-6 py-3">التصنيف</th>
-                    <th className="px-6 py-3">عدد العمليات</th>
-                    <th className="px-6 py-3">إجمالي المبلغ</th>
-                    <th className="px-6 py-3">النسبة من المصروفات</th>
+                    <th className="px-6 py-3.5">التصنيف</th>
+                    <th className="px-6 py-3.5 text-center">عدد العمليات</th>
+                    <th className="px-6 py-3.5">النسبة</th>
+                    <th className="px-6 py-3.5 font-bold">إجمالي المبلغ</th>
+                    {reportType === 'custom' && <th className="px-6 py-3.5 w-10"></th>}
                   </tr>
                 </thead>
-                <tbody>
+                <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60">
                   {expensesByCategory.map((cat, idx) => {
                     const pct = totalExpenses > 0 ? ((cat.total / totalExpenses) * 100).toFixed(1) : '0';
+                    const isExpanded = expandedCategory === cat.id;
+                    
+                    // Group items by date for the expanded view
+                    const itemsByDate: Record<string, { date: string, items: any[], total: number }> = {};
+                    cat.items.forEach(item => {
+                      const d = new Date(item.date).toLocaleDateString('ar-EG', { year: 'numeric', month: 'short', day: 'numeric' });
+                      if (!itemsByDate[d]) itemsByDate[d] = { date: d, items: [], total: 0 };
+                      itemsByDate[d].items.push(item);
+                      itemsByDate[d].total += item.effectiveAmount;
+                    });
+                    const groupedDates = Object.values(itemsByDate);
+
                     return (
-                      <tr key={idx} className="border-b dark:border-slate-700/50 last:border-0 hover:bg-slate-50/50 dark:hover:bg-slate-800/30">
-                        <td className="px-6 py-3 font-medium flex items-center gap-2">
-                          <span className="w-3 h-3 rounded-full" style={{ backgroundColor: COLORS[idx % COLORS.length] }} />
-                          {cat.name}
-                        </td>
-                        <td className="px-6 py-3">{cat.count}</td>
-                        <td className="px-6 py-3 font-bold text-rose-600">{formatCurrency(cat.total, isRestricted)}</td>
-                        <td className="px-6 py-3">{pct}%</td>
-                      </tr>
+                      <Fragment key={cat.id}>
+                        <tr 
+                          onClick={() => reportType === 'custom' && setExpandedCategory(isExpanded ? null : cat.id)}
+                          className={`
+                            group transition-colors 
+                            ${reportType === 'custom' ? 'cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800/40' : ''} 
+                            ${isExpanded ? 'bg-slate-50 dark:bg-slate-800/40' : ''}
+                          `}
+                        >
+                          <td className="px-6 py-4 font-bold flex items-center gap-3">
+                            <span className="w-3.5 h-3.5 rounded-full shadow-sm" style={{ backgroundColor: COLORS[idx % COLORS.length] }} />
+                            {cat.name}
+                          </td>
+                          <td className="px-6 py-4 text-center font-medium text-slate-600 dark:text-slate-400">{cat.count}</td>
+                          <td className="px-6 py-4 text-slate-500">
+                            <div className="flex items-center gap-2">
+                              <span>{pct}%</span>
+                              <div className="w-16 h-1.5 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden hidden sm:block">
+                                <div className="h-full rounded-full" style={{ width: `${pct}%`, backgroundColor: COLORS[idx % COLORS.length] }} />
+                              </div>
+                            </div>
+                          </td>
+                          <td className="px-6 py-4 font-black text-rose-600 dark:text-rose-400 text-base">{formatCurrency(cat.total, isRestricted)}</td>
+                          {reportType === 'custom' && (
+                            <td className="px-6 py-4 text-slate-400 group-hover:text-primary-500 transition-colors">
+                              {isExpanded ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
+                            </td>
+                          )}
+                        </tr>
+                        
+                        <AnimatePresence>
+                          {isExpanded && reportType === 'custom' && (
+                            <tr className="bg-slate-50/50 dark:bg-slate-900/20">
+                              <td colSpan={5} className="p-0 border-b border-slate-200 dark:border-slate-700/60">
+                                <motion.div
+                                  initial={{ height: 0, opacity: 0 }}
+                                  animate={{ height: 'auto', opacity: 1 }}
+                                  exit={{ height: 0, opacity: 0 }}
+                                  transition={{ duration: 0.2 }}
+                                  className="overflow-hidden"
+                                >
+                                  <div className="p-6 ps-12">
+                                    <h4 className="text-sm font-bold text-slate-700 dark:text-slate-300 mb-4 flex items-center gap-2">
+                                      <Calendar className="w-4 h-4 text-primary-500" />
+                                      تفاصيل مصروفات ({cat.name}) بالتاريخ:
+                                    </h4>
+                                    <div className="space-y-4">
+                                      {groupedDates.map((group, i) => (
+                                        <div key={i} className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden shadow-sm">
+                                          <div className="bg-slate-50 dark:bg-slate-900/50 px-4 py-2 border-b border-slate-200 dark:border-slate-700 flex justify-between items-center">
+                                            <span className="font-bold text-sm text-slate-800 dark:text-slate-200">{group.date}</span>
+                                            <span className="font-bold text-sm text-rose-600 dark:text-rose-400">{formatCurrency(group.total, isRestricted)}</span>
+                                          </div>
+                                          <div className="divide-y divide-slate-100 dark:divide-slate-700/50">
+                                            {group.items.map(item => (
+                                              <div key={item.id} className="p-3 px-4 flex justify-between items-center hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors">
+                                                <div className="flex flex-col gap-1">
+                                                  <span className="text-sm font-medium text-slate-700 dark:text-slate-300">{item.title}</span>
+                                                  {item.notes && <span className="text-xs text-slate-500">{item.notes}</span>}
+                                                </div>
+                                                <span className="text-sm font-bold text-slate-900 dark:text-slate-100">{formatCurrency(item.effectiveAmount, isRestricted)}</span>
+                                              </div>
+                                            ))}
+                                          </div>
+                                        </div>
+                                      ))}
+                                    </div>
+                                  </div>
+                                </motion.div>
+                              </td>
+                            </tr>
+                          )}
+                        </AnimatePresence>
+                      </Fragment>
                     );
                   })}
                 </tbody>
@@ -561,12 +465,10 @@ export function Reports() {
       )}
 
       {/* Transactions Detail List in Period */}
-      <Card>
-        <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-          <CardTitle className="text-base font-bold">جدول المعاملات التفصيلي</CardTitle>
-
+      <Card className="border-0 shadow-sm ring-1 ring-slate-200/50 dark:ring-slate-800/50 print:break-before-page print:ring-0 print:shadow-none">
+        <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-slate-50/50 dark:bg-slate-800/20 border-b border-slate-100 dark:border-slate-800">
+          <CardTitle className="text-lg font-bold">سجل المعاملات التفصيلي</CardTitle>
           <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto print:hidden">
-            {/* Search Input */}
             <div className="relative flex-1 sm:w-48">
               <Search className="w-4 h-4 absolute right-3 top-3 text-slate-400" />
               <Input
@@ -574,17 +476,15 @@ export function Reports() {
                 placeholder="بحث..."
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
-                className="pe-9 h-9 text-xs"
+                className="pe-9 h-10 text-sm bg-white dark:bg-slate-900"
               />
             </div>
-
-            {/* Type Filter Buttons */}
-            <div className="flex rounded-lg border border-slate-200 dark:border-slate-700 p-0.5 bg-slate-50 dark:bg-slate-800">
+            <div className="flex rounded-lg border border-slate-200 dark:border-slate-700 p-1 bg-white dark:bg-slate-900 shadow-sm">
               <button
                 type="button"
                 onClick={() => setTxTypeFilter('ALL')}
-                className={`px-2.5 py-1 text-xs rounded-md font-medium transition-all ${
-                  txTypeFilter === 'ALL' ? 'bg-white dark:bg-slate-700 shadow-sm font-bold' : 'text-slate-500'
+                className={`px-3 py-1.5 text-xs rounded-md font-bold transition-all ${
+                  txTypeFilter === 'ALL' ? 'bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
                 }`}
               >
                 الكل
@@ -592,8 +492,8 @@ export function Reports() {
               <button
                 type="button"
                 onClick={() => setTxTypeFilter('INCOME')}
-                className={`px-2.5 py-1 text-xs rounded-md font-medium transition-all ${
-                  txTypeFilter === 'INCOME' ? 'bg-emerald-500 text-white font-bold' : 'text-slate-500'
+                className={`px-3 py-1.5 text-xs rounded-md font-bold transition-all ${
+                  txTypeFilter === 'INCOME' ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-400' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
                 }`}
               >
                 إيرادات
@@ -601,8 +501,8 @@ export function Reports() {
               <button
                 type="button"
                 onClick={() => setTxTypeFilter('EXPENSE')}
-                className={`px-2.5 py-1 text-xs rounded-md font-medium transition-all ${
-                  txTypeFilter === 'EXPENSE' ? 'bg-rose-500 text-white font-bold' : 'text-slate-500'
+                className={`px-3 py-1.5 text-xs rounded-md font-bold transition-all ${
+                  txTypeFilter === 'EXPENSE' ? 'bg-rose-100 text-rose-800 dark:bg-rose-900/40 dark:text-rose-400' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
                 }`}
               >
                 مصروفات
@@ -610,36 +510,35 @@ export function Reports() {
             </div>
           </div>
         </CardHeader>
-
         <CardContent className="p-0">
           <div className="overflow-x-auto">
             <table className="w-full text-sm text-right">
               <thead className="bg-slate-50 dark:bg-slate-800/50 text-slate-500 border-b dark:border-slate-700/50">
                 <tr>
-                  <th className="px-6 py-3">التاريخ</th>
-                  <th className="px-6 py-3">النوع</th>
-                  <th className="px-6 py-3">البيان / التصنيف</th>
-                  <th className="px-6 py-3">المبلغ</th>
-                  <th className="px-6 py-3">الملاحظات</th>
+                  <th className="px-6 py-3.5">التاريخ والوقت</th>
+                  <th className="px-6 py-3.5">النوع</th>
+                  <th className="px-6 py-3.5">البيان / التصنيف</th>
+                  <th className="px-6 py-3.5">المبلغ</th>
+                  <th className="px-6 py-3.5">الملاحظات</th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60">
                 {displayTxList.map(tx => (
-                  <tr key={tx.id} className="border-b dark:border-slate-700/50 last:border-0 hover:bg-slate-50/50 dark:hover:bg-slate-800/30">
-                    <td className="px-6 py-3 text-slate-600 dark:text-slate-400">
+                  <tr key={tx.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors">
+                    <td className="px-6 py-4 text-slate-600 dark:text-slate-400 font-medium">
                       {new Date(tx.date).toLocaleDateString('ar-EG', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
                     </td>
-                    <td className="px-6 py-3">
-                      <span className={`inline-block px-2.5 py-0.5 rounded-full text-xs font-bold ${
+                    <td className="px-6 py-4">
+                      <span className={`inline-flex items-center justify-center px-2.5 py-1 rounded-md text-xs font-bold border ${
                         tx.type === 'INCOME' 
-                          ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300' 
-                          : 'bg-rose-100 text-rose-800 dark:bg-rose-950/60 dark:text-rose-300'
+                          ? 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-400 dark:border-emerald-800/60' 
+                          : 'bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-950/40 dark:text-rose-400 dark:border-rose-800/60'
                       }`}>
                         {tx.type === 'INCOME' ? 'إيراد' : 'مصروف'}
                       </span>
                     </td>
-                    <td className="px-6 py-3 font-medium">{tx.title}</td>
-                    <td className="px-6 py-3 font-bold">
+                    <td className="px-6 py-4 font-bold text-slate-800 dark:text-slate-200">{tx.title}</td>
+                    <td className="px-6 py-4 font-black text-base">
                       {(() => {
                         const isPayment = (clientOperations || []).some(op => op.expenseTransactionId === tx.id && op.type === 'PAYMENT');
                         if (tx.type === 'INCOME') {
@@ -651,13 +550,17 @@ export function Reports() {
                         }
                       })()}
                     </td>
-                    <td className="px-6 py-3 text-slate-500">{tx.notes || '-'}</td>
+                    <td className="px-6 py-4 text-slate-500 text-sm">{tx.notes || '-'}</td>
                   </tr>
                 ))}
                 {displayTxList.length === 0 && (
                   <tr>
-                    <td colSpan={5} className="px-6 py-8 text-center text-slate-500">
-                      لا توجد معاملات مسجلة تطابق خيارات البحث للفترة المحددة
+                    <td colSpan={5} className="px-6 py-12 text-center text-slate-500">
+                      <div className="flex flex-col items-center justify-center gap-2">
+                        <Filter className="w-8 h-8 text-slate-300 dark:text-slate-600 mb-2" />
+                        <p className="font-medium text-base text-slate-600 dark:text-slate-400">لا توجد معاملات مسجلة</p>
+                        <p className="text-sm">تطابق خيارات البحث للفترة المحددة</p>
+                      </div>
                     </td>
                   </tr>
                 )}
@@ -669,4 +572,3 @@ export function Reports() {
     </div>
   );
 }
-

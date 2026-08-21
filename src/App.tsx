@@ -10,12 +10,14 @@ import { Profit } from './screens/Profit';
 import { Reports } from './screens/Reports';
 import { Settings } from './screens/Settings';
 import { initAuthListener, getCachedToken, findBackupFile, saveBackupToDrive, clearCachedToken } from './lib/driveBackup';
-import { AlertCircle } from 'lucide-react';
+import { AlertCircle, Loader2 } from 'lucide-react';
+import { motion } from 'motion/react';
 
 export default function App() {
   const { auth } = useStore();
   const [activeScreen, setActiveScreen] = useState('dashboard');
   const [newerBackupAvailable, setNewerBackupAvailable] = useState(false);
+  const [isVerifying, setIsVerifying] = useState(true);
 
   useEffect(() => {
     let unsubscribeStore: () => void;
@@ -38,6 +40,8 @@ export default function App() {
         if (err.message && err.message.includes('401')) {
           clearCachedToken();
         }
+      } finally {
+        setIsVerifying(false);
       }
 
       // 2. Setup auto-backup on state changes
@@ -88,6 +92,7 @@ export default function App() {
       });
     }, () => {
       // Clean up if user logs out of Google Drive
+      setIsVerifying(false);
       if (unsubscribeStore) {
         unsubscribeStore();
       }
@@ -103,6 +108,22 @@ export default function App() {
 
   if (!auth.isLoggedIn) {
     return <Login />;
+  }
+
+  if (isVerifying) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50 dark:bg-slate-900">
+        <motion.div 
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="flex flex-col items-center gap-4 text-primary-600 dark:text-primary-400"
+        >
+          <Loader2 className="w-12 h-12 animate-spin" />
+          <h2 className="text-xl font-bold text-slate-700 dark:text-slate-200">جاري التحقق من البيانات...</h2>
+          <p className="text-sm text-slate-500 dark:text-slate-400">يرجى الانتظار بينما نقوم بمزامنة آخر التحديثات</p>
+        </motion.div>
+      </div>
+    );
   }
 
   const renderScreen = () => {

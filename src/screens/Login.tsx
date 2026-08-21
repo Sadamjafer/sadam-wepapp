@@ -3,17 +3,39 @@ import { useStore } from '../store/useStore';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/Card';
 import { Input } from '../components/ui/Input';
 import { Button } from '../components/ui/Button';
-import { Lock } from 'lucide-react';
+import { Lock, Loader2 } from 'lucide-react';
+import { signInWithGoogleDrive } from '../lib/driveBackup';
 
 export function Login() {
   const [passcode, setPasscode] = useState('');
   const [error, setError] = useState(false);
+  const [isConnecting, setIsConnecting] = useState(false);
   const login = useStore(state => state.login);
 
-  const handleLogin = (e: FormEvent) => {
+  const handleLogin = async (e: FormEvent) => {
     e.preventDefault();
-    if (!login(passcode)) {
+    
+    // Check if passcode is valid before doing anything
+    const state = useStore.getState();
+    const isValid = passcode === state.passcodes.admin || 
+                    passcode === state.passcodes.supervisor || 
+                    passcode === state.passcodes.restricted;
+
+    if (!isValid) {
       setError(true);
+      return;
+    }
+
+    try {
+      setIsConnecting(true);
+      // Attempt to connect to Google Drive automatically on login
+      await signInWithGoogleDrive();
+    } catch (err) {
+      console.warn('Google Drive connection skipped or failed:', err);
+    } finally {
+      setIsConnecting(false);
+      // Log into the system regardless of Google Drive success/failure
+      login(passcode);
     }
   };
 
@@ -40,11 +62,19 @@ export function Login() {
                 }}
                 className={`text-center text-xl tracking-[0.5em] ${error ? 'border-red-500 focus-visible:ring-red-500' : ''}`}
                 autoFocus
+                disabled={isConnecting}
               />
               {error && <p className="text-red-500 text-sm mt-2 text-center">رمز المرور غير صحيح</p>}
             </div>
-            <Button type="submit" className="w-full" size="lg">
-              دخول
+            <Button type="submit" className="w-full" size="lg" disabled={isConnecting}>
+              {isConnecting ? (
+                <>
+                  <Loader2 className="w-5 h-5 me-2 animate-spin" />
+                  جاري الاتصال بـ Drive...
+                </>
+              ) : (
+                'دخول'
+              )}
             </Button>
           </form>
         </CardContent>

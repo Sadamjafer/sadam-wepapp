@@ -9,6 +9,7 @@ import { formatCurrency, parseInputDateToISO } from '../lib/utils';
 import { Plus, Tag, Edit2, Trash2, AlertTriangle, CheckCircle2, Calendar, LayoutGrid, ListFilter, Search, ChevronDown, ChevronUp } from 'lucide-react';
 import { Modal } from '../components/ui/Modal';
 import { Transaction } from '../types';
+import { motion, AnimatePresence } from 'motion/react';
 
 type ViewMode = 'CATEGORY' | 'DATE' | 'ALL';
 
@@ -329,26 +330,34 @@ export function Expenses() {
                   )}
                 </div>
               </CardHeader>
-              {expandedCategories[group.categoryId] && (
-                <CardContent className="p-0">
-                  <div className="overflow-x-auto">
-                  <table className="w-full text-sm text-right">
-                    <thead className="text-xs text-slate-400 bg-slate-50/40 dark:bg-slate-900/30">
-                      <tr>
-                        <th className="px-6 py-2.5">التاريخ</th>
-                        <th className="px-6 py-2.5">المبلغ</th>
-                        <th className="px-6 py-2.5">الملاحظات</th>
-                        {canManage && <th className="px-6 py-2.5 text-center">الإجراءات</th>}
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {group.items.map(tx => (
-                        <tr key={tx.id} className="border-b dark:border-slate-800/40 last:border-0 hover:bg-slate-50/50 dark:hover:bg-slate-800/30">
-                          <td className="px-6 py-3 text-slate-600 dark:text-slate-400">
-                            {new Date(tx.date).toLocaleDateString('ar-EG', { year: 'numeric', month: 'short', day: 'numeric' })}
-                          </td>
-                          <td className="px-6 py-3 font-bold">
-                            {(() => {
+              <AnimatePresence>
+                {expandedCategories[group.categoryId] && (
+                  <motion.div
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: 'auto', opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    transition={{ duration: 0.2 }}
+                    className="overflow-hidden"
+                  >
+                    <CardContent className="p-0 border-t dark:border-slate-700/50">
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-sm text-right">
+                          <thead className="text-xs text-slate-400 bg-slate-50/40 dark:bg-slate-900/30">
+                            <tr>
+                              <th className="px-6 py-2.5">التاريخ</th>
+                              <th className="px-6 py-2.5">المبلغ</th>
+                              <th className="px-6 py-2.5">الملاحظات</th>
+                              {canManage && <th className="px-6 py-2.5 text-center">الإجراءات</th>}
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {group.items.map(tx => (
+                              <tr key={tx.id} className="border-b dark:border-slate-800/40 last:border-0 hover:bg-slate-50/50 dark:hover:bg-slate-800/30">
+                                <td className="px-6 py-3 text-slate-600 dark:text-slate-400">
+                                  {new Date(tx.date).toLocaleDateString('ar-EG', { year: 'numeric', month: 'short', day: 'numeric' })}
+                                </td>
+                                <td className="px-6 py-3 font-bold">
+                                  {(() => {
                               const isPayment = (clientOperations || []).some(op => op.expenseTransactionId === tx.id && op.type === 'PAYMENT');
                               return isPayment ? (
                                 <span className="text-emerald-600 dark:text-emerald-400">-{formatCurrency(tx.amount, isRestricted)}</span>
@@ -388,10 +397,11 @@ export function Expenses() {
                   </table>
                 </div>
               </CardContent>
-              )}
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </Card>
           ))}
-
           {expensesGroupedByCategory.length === 0 && (
             <Card>
               <CardContent className="p-12 text-center text-slate-500">
@@ -425,8 +435,16 @@ export function Expenses() {
                   )}
                 </div>
               </CardHeader>
-              {expandedDates[group.dateKey] && (
-              <CardContent className="p-0">
+              <AnimatePresence>
+                {expandedDates[group.dateKey] && (
+                  <motion.div
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: 'auto', opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    transition={{ duration: 0.2 }}
+                    className="overflow-hidden"
+                  >
+                    <CardContent className="p-0 border-t dark:border-slate-700/50">
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm text-right">
                     <thead className="text-xs text-slate-400 bg-slate-50/40 dark:bg-slate-900/30">
@@ -482,7 +500,9 @@ export function Expenses() {
                   </table>
                 </div>
               </CardContent>
-              )}
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </Card>
           ))}
 
