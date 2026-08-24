@@ -22,20 +22,20 @@ export function Modal({ isOpen, onClose, title, children }: ModalProps) {
 
   return (
     <div 
-      className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200"
+      className="fixed inset-0 z-50 md:bg-slate-900/50 md:backdrop-blur-sm flex md:items-center md:justify-center animate-in fade-in duration-200"
       onClick={(e) => {
         if (e.target === overlayRef.current) onClose();
       }}
       ref={overlayRef}
     >
-      <div className="bg-white dark:bg-slate-800 rounded-2xl w-full max-w-md shadow-xl overflow-hidden animate-in zoom-in-95 duration-200">
-        <div className="flex justify-between items-center px-6 py-4 border-b border-slate-100 dark:border-slate-700/50">
-          <h2 className="text-lg font-semibold">{title}</h2>
-          <Button variant="ghost" size="icon" onClick={onClose} className="rounded-full -me-2">
+      <div className="bg-white dark:bg-slate-800 w-full h-full md:h-auto md:max-w-md md:rounded-2xl shadow-2xl overflow-hidden flex flex-col md:animate-in md:zoom-in-95 md:duration-200 animate-in slide-in-from-bottom-full duration-300">
+        <div className="flex justify-between items-center px-4 md:px-6 py-4 border-b border-slate-100 dark:border-slate-700/50 shrink-0 bg-white dark:bg-slate-800 z-10 sticky top-0">
+          <h2 className="text-lg font-bold">{title}</h2>
+          <Button variant="ghost" size="icon" onClick={onClose} className="rounded-full bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600">
             <X className="w-5 h-5" />
           </Button>
         </div>
-        <div className="p-6 max-h-[80vh] overflow-y-auto">
+        <div className="p-4 md:p-6 flex-1 overflow-y-auto pb-24 md:pb-6 hide-scrollbar">
           {children}
         </div>
       </div>

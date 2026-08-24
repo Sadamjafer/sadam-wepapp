@@ -68,44 +68,44 @@ export function Dashboard() {
         </motion.div>
       </div>
       
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <motion.div variants={itemVariants}>
-          <Card className="hover:shadow-lg transition-shadow">
-            <CardContent className="p-6 flex items-center gap-4">
-              <div className="bg-primary-100 dark:bg-primary-900/30 p-4 rounded-full text-primary-600 dark:text-primary-400">
-                <TrendingUp className="w-6 h-6" />
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
+        <motion.div variants={itemVariants} className="col-span-2 md:col-span-1">
+          <Card className="hover:shadow-md transition-shadow bg-gradient-to-r from-primary-500/10 via-primary-500/5 to-transparent border-primary-200/60 dark:border-primary-800/40">
+            <CardContent className="p-4 sm:p-6 flex items-center gap-3 sm:gap-4">
+              <div className="bg-primary-100 dark:bg-primary-900/40 p-3 sm:p-4 rounded-2xl text-primary-600 dark:text-primary-400 shrink-0">
+                <TrendingUp className="w-5 h-5 sm:w-6 sm:h-6" />
               </div>
-              <div>
-                <p className="text-sm text-slate-500 dark:text-slate-400 mb-1">الرصيد الحالي</p>
-                <h3 className="text-2xl font-bold">{formatCurrency(balance, isRestricted)}</h3>
+              <div className="min-w-0">
+                <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mb-0.5 sm:mb-1 truncate font-medium">الرصيد الحالي</p>
+                <h3 className="text-xl sm:text-2xl font-bold truncate text-slate-900 dark:text-slate-100">{formatCurrency(balance, isRestricted)}</h3>
               </div>
             </CardContent>
           </Card>
         </motion.div>
         
-        <motion.div variants={itemVariants}>
-          <Card className="hover:shadow-lg transition-shadow">
-            <CardContent className="p-6 flex items-center gap-4">
-              <div className="bg-green-100 dark:bg-green-900/30 p-4 rounded-full text-green-600 dark:text-green-400">
-                <Wallet className="w-6 h-6" />
+        <motion.div variants={itemVariants} className="col-span-1">
+          <Card className="hover:shadow-md transition-shadow">
+            <CardContent className="p-3.5 sm:p-6 flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4">
+              <div className="bg-green-100 dark:bg-green-900/30 p-2.5 sm:p-4 rounded-xl sm:rounded-full text-green-600 dark:text-green-400 shrink-0">
+                <Wallet className="w-4 h-4 sm:w-6 sm:h-6" />
               </div>
-              <div>
-                <p className="text-sm text-slate-500 dark:text-slate-400 mb-1">إجمالي الإيرادات</p>
-                <h3 className="text-2xl font-bold">{formatCurrency(totalIncome, isRestricted)}</h3>
+              <div className="min-w-0 w-full">
+                <p className="text-[11px] sm:text-sm text-slate-500 dark:text-slate-400 mb-0.5 sm:mb-1 truncate font-medium">إجمالي الإيرادات</p>
+                <h3 className="text-base sm:text-2xl font-bold truncate text-green-600 dark:text-green-400">{formatCurrency(totalIncome, isRestricted)}</h3>
               </div>
             </CardContent>
           </Card>
         </motion.div>
 
-        <motion.div variants={itemVariants}>
-          <Card className="hover:shadow-lg transition-shadow">
-            <CardContent className="p-6 flex items-center gap-4">
-              <div className="bg-red-100 dark:bg-red-900/30 p-4 rounded-full text-red-600 dark:text-red-400">
-                <ReceiptText className="w-6 h-6" />
+        <motion.div variants={itemVariants} className="col-span-1">
+          <Card className="hover:shadow-md transition-shadow">
+            <CardContent className="p-3.5 sm:p-6 flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4">
+              <div className="bg-red-100 dark:bg-red-900/30 p-2.5 sm:p-4 rounded-xl sm:rounded-full text-red-600 dark:text-red-400 shrink-0">
+                <ReceiptText className="w-4 h-4 sm:w-6 sm:h-6" />
               </div>
-              <div>
-                <p className="text-sm text-slate-500 dark:text-slate-400 mb-1">إجمالي المصروفات</p>
-                <h3 className="text-2xl font-bold">{formatCurrency(totalExpense, isRestricted)}</h3>
+              <div className="min-w-0 w-full">
+                <p className="text-[11px] sm:text-sm text-slate-500 dark:text-slate-400 mb-0.5 sm:mb-1 truncate font-medium">إجمالي المصروفات</p>
+                <h3 className="text-base sm:text-2xl font-bold truncate text-red-600 dark:text-red-400">{formatCurrency(totalExpense, isRestricted)}</h3>
               </div>
             </CardContent>
           </Card>

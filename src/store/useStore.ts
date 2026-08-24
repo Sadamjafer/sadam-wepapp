@@ -37,6 +37,7 @@ interface AppState {
   updateIncomeRecord: (id: string, record: Partial<Omit<IncomeRecord, 'id'>>) => void;
   deleteIncomeRecord: (id: string) => void;
   addExpenseCategory: (category: Omit<ExpenseCategory, 'id'>) => string;
+  deleteExpenseCategory: (id: string) => void;
   
   addClient: (client: Omit<Client, 'id'>) => void;
   updateClient: (id: string, updates: Partial<Omit<Client, 'id'>> | string) => void;
@@ -240,6 +241,9 @@ export const useStore = create<AppState>()(
         }));
         return id;
       },
+      deleteExpenseCategory: (id) => set((state) => ({
+        expenseCategories: state.expenseCategories.filter(c => c.id !== id)
+      })),
 
       addClient: (client) => set((state) => ({
         clients: [{ ...client, id: crypto.randomUUID() }, ...state.clients]

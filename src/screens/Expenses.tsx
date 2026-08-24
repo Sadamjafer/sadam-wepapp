@@ -14,7 +14,7 @@ import { motion, AnimatePresence } from 'motion/react';
 type ViewMode = 'CATEGORY' | 'DATE' | 'ALL';
 
 export function Expenses() {
-  const { auth, clients, clientOperations, expenseCategories, addExpenseCategory, transactions, addTransaction, updateTransaction, deleteTransaction } = useStore();
+  const { auth, clients, clientOperations, expenseCategories, addExpenseCategory, deleteExpenseCategory, transactions, addTransaction, updateTransaction, deleteTransaction } = useStore();
   
   const [viewMode, setViewMode] = useState<ViewMode>('DATE');
   const [searchQuery, setSearchQuery] = useState('');
@@ -225,7 +225,7 @@ export function Expenses() {
               setIsCatModalOpen(true);
             }}>
               <Tag className="w-4 h-4 me-2" />
-              تصنيف جديد
+              إدارة التصنيفات
             </Button>
             <Button onClick={handleOpenAddExp}>
               <Plus className="w-5 h-5 me-2" />
@@ -523,7 +523,55 @@ export function Expenses() {
             <CardTitle>سجل المصروفات الكلي</CardTitle>
           </CardHeader>
           <CardContent className="p-0">
-            <div className="overflow-x-auto">
+            
+            {/* Mobile Cards View */}
+            <div className="md:hidden flex flex-col gap-3 p-4">
+              {filteredExpenses.map((tx) => {
+                const catName = tx.categoryId ? (storeCategories.find(c => c.id === tx.categoryId)?.name || 'غير مصنف') : tx.title;
+                const isPayment = (clientOperations || []).some(op => op.expenseTransactionId === tx.id && op.type === 'PAYMENT');
+                return (
+                  <div key={tx.id} className="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700 flex flex-col gap-3">
+                    <div className="flex justify-between items-center">
+                      <span className="text-xs font-medium text-slate-500">{new Date(tx.date).toLocaleDateString('ar-EG')}</span>
+                      {canManage && (
+                        <div className="flex items-center gap-1">
+                          {!isPayment && (
+                            <Button variant="ghost" size="icon" className="h-8 w-8 text-blue-600 bg-blue-50 dark:bg-blue-900/30 dark:hover:bg-blue-900/50" onClick={() => handleOpenEditExp(tx)}>
+                              <Edit2 className="w-4 h-4" />
+                            </Button>
+                          )}
+                          <Button variant="ghost" size="icon" className="h-8 w-8 text-rose-600 bg-rose-50 dark:bg-rose-900/30 dark:hover:bg-rose-900/50" onClick={() => setDeletingExpenseId(tx.id)}>
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex justify-between items-end">
+                      <div>
+                        <div className="text-sm text-slate-500 mb-1">المبلغ</div>
+                        <div className="text-lg font-bold text-rose-600">{formatCurrency(tx.amount, isRestricted)}</div>
+                        {isPayment && <span className="text-xs text-rose-500 ms-2 font-bold">(سداد مورد)</span>}
+                      </div>
+                      <div className="text-left">
+                        <div className="text-sm text-slate-500 mb-1">التصنيف</div>
+                        <div className="font-bold">{catName}</div>
+                      </div>
+                    </div>
+                    {tx.notes && (
+                      <div className="text-sm text-slate-600 dark:text-slate-400 bg-slate-50 dark:bg-slate-900/50 p-2 rounded-lg mt-1">
+                        {tx.notes}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+              {filteredExpenses.length === 0 && (
+                <div className="text-center p-6 text-slate-500">لا توجد مصروفات مسجلة</div>
+              )}
+            </div>
+            
+            {/* Desktop Table View */}
+            <div className="hidden md:block overflow-x-auto">
               <table className="w-full text-sm text-right">
                 <thead className="text-xs text-slate-500 uppercase bg-slate-50 dark:bg-slate-800/50">
                   <tr>
@@ -588,9 +636,9 @@ export function Expenses() {
         </Card>
       )}
 
-      {/* Modal Add Category */}
-      <Modal isOpen={isCatModalOpen} onClose={() => setIsCatModalOpen(false)} title="إضافة تصنيف جديد">
-        <form onSubmit={handleAddCat} className="space-y-4">
+      {/* Modal Manage Categories */}
+      <Modal isOpen={isCatModalOpen} onClose={() => setIsCatModalOpen(false)} title="إدارة التصنيفات">
+        <form onSubmit={handleAddCat} className="space-y-4 mb-6">
           {saveCatSuccessMsg && (
             <div className="p-3 bg-green-50 text-green-700 dark:bg-green-950/30 dark:text-green-400 border border-green-200 dark:border-green-800/50 rounded-xl flex items-center gap-2 text-sm font-medium animate-in fade-in zoom-in duration-200">
               <CheckCircle2 className="w-5 h-5 shrink-0" />
@@ -603,6 +651,39 @@ export function Expenses() {
           </div>
           <Button type="submit" className="w-full mt-4">حفظ التصنيف</Button>
         </form>
+
+        <div className="space-y-2 max-h-[300px] overflow-y-auto pr-1">
+          <Label className="text-sm font-bold text-slate-700 dark:text-slate-300">التصنيفات الحالية</Label>
+          {storeCategories.map(cat => {
+            const isUsedInTransactions = transactions.some(t => t.categoryId === cat.id);
+            const isUsedInClients = clients.some(c => c.linkedExpenseCategoryId === cat.id);
+            const isUsed = isUsedInTransactions || isUsedInClients;
+
+            return (
+              <div key={cat.id} className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700">
+                <span className="font-medium text-sm">{cat.name}</span>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className={`h-8 w-8 ${isUsed ? 'text-slate-300 dark:text-slate-600 cursor-not-allowed' : 'text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40'}`}
+                  disabled={isUsed}
+                  title={isUsed ? 'لا يمكن حذف هذا التصنيف لوجود بيانات مرتبطة به' : 'حذف التصنيف'}
+                  onClick={() => {
+                    if (!isUsed && window.confirm('هل أنت متأكد من حذف هذا التصنيف؟')) {
+                      deleteExpenseCategory(cat.id);
+                    }
+                  }}
+                >
+                  <Trash2 className="w-4 h-4" />
+                </Button>
+              </div>
+            );
+          })}
+          {storeCategories.length === 0 && (
+            <p className="text-sm text-center text-slate-500 py-4">لا توجد تصنيفات بعد.</p>
+          )}
+        </div>
       </Modal>
 
       {/* Modal Add/Edit Expense */}
@@ -670,6 +751,17 @@ export function Expenses() {
           </div>
         </div>
       </Modal>
+
+      {/* Mobile FAB */}
+      <div className="md:hidden fixed bottom-20 left-4 z-40">
+        <Button 
+          className="h-14 w-14 rounded-full shadow-lg bg-rose-600 hover:bg-rose-700 flex items-center justify-center p-0"
+          onClick={handleOpenAddExp}
+        >
+          <Plus className="w-6 h-6 text-white" />
+        </Button>
+      </div>
+
     </div>
   );
 }

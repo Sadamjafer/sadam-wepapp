@@ -19,7 +19,10 @@ import {
 } from '../lib/driveBackup';
 
 export function Settings() {
-  const { auth, passcodes, updatePasscodes, stores, addStore, updateStore, deleteStore, settings, updateSettings, importBackupData } = useStore();
+  const { 
+    auth, passcodes, updatePasscodes, stores, addStore, updateStore, deleteStore, settings, updateSettings, importBackupData,
+    expenseCategories, deleteExpenseCategory, transactions, clients
+  } = useStore();
   
   const [passForm, setPassForm] = useState(passcodes);
   const [isStoreModalOpen, setIsStoreModalOpen] = useState(false);
@@ -395,6 +398,47 @@ export function Settings() {
                 )}
               </div>
             ))}
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>إدارة أصناف المصروفات</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-3">
+            {expenseCategories.filter(c => c.storeId === auth.currentStoreId).map(cat => {
+              const isUsed = 
+                transactions.some(tx => tx.categoryId === cat.id && tx.storeId === auth.currentStoreId) ||
+                clients.some(cl => cl.linkedExpenseCategoryId === cat.id && cl.storeId === auth.currentStoreId);
+              
+              return (
+                <div key={cat.id} className="flex justify-between items-center p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl">
+                  <span className="font-medium">{cat.name}</span>
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    className={`text-red-500 ${isUsed ? 'opacity-50 cursor-not-allowed' : 'hover:text-red-600 hover:bg-red-50'}`} 
+                    onClick={() => { 
+                      if (isUsed) {
+                        alert('لا يمكن حذف هذا الصنف لأنه مرتبط بمعاملات أو موردين.');
+                        return;
+                      }
+                      if(window.confirm('هل أنت متأكد من رغبتك في حذف هذا الصنف؟')) {
+                        deleteExpenseCategory(cat.id);
+                      }
+                    }}
+                    title={isUsed ? 'لا يمكن الحذف لارتباطه ببيانات' : 'حذف الصنف'}
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
+                </div>
+              );
+            })}
+            {expenseCategories.filter(c => c.storeId === auth.currentStoreId).length === 0 && (
+              <p className="text-slate-500 text-sm text-center py-4">لا توجد أصناف مصروفات مسجلة.</p>
+            )}
           </div>
         </CardContent>
       </Card>

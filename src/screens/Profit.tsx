@@ -453,20 +453,20 @@ export function Profit() {
       </div>
 
       {/* Summary Cards Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4">
         {/* Cumulative Net Profit Card */}
-        <Card className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white border-0 shadow-xl overflow-hidden relative">
-          <div className="absolute top-0 right-0 p-8 opacity-10 pointer-events-none">
-            <Wallet className="w-28 h-28 text-white" />
+        <Card className="col-span-2 sm:col-span-1 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white border-0 shadow-md sm:shadow-xl overflow-hidden relative">
+          <div className="absolute top-0 right-0 p-6 opacity-10 pointer-events-none">
+            <Wallet className="w-20 h-20 sm:w-28 sm:h-28 text-white" />
           </div>
-          <CardContent className="p-6">
-            <p className="text-slate-400 text-xs font-semibold tracking-wide uppercase mb-1">الرصيد التراكمي النهائي للأرباح</p>
-            <h3 className={`text-3xl font-extrabold ${netProfit >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
+          <CardContent className="p-4 sm:p-6">
+            <p className="text-slate-400 text-[11px] sm:text-xs font-semibold tracking-wide uppercase mb-1">الرصيد التراكمي النهائي للأرباح</p>
+            <h3 className={`text-xl sm:text-3xl font-extrabold ${netProfit >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
               {formatCurrency(netProfit, isRestricted)}
             </h3>
-            <div className="mt-4 pt-3 border-t border-slate-700/60 flex items-center justify-between text-xs text-slate-300">
+            <div className="mt-3 sm:mt-4 pt-2.5 sm:pt-3 border-t border-slate-700/60 flex items-center justify-between text-[11px] sm:text-xs text-slate-300">
               <span>صافي الأرباح المتبقية:</span>
-              <span className={`font-bold px-2 py-0.5 rounded ${netProfit >= 0 ? 'bg-emerald-950/80 text-emerald-300' : 'bg-rose-950/80 text-rose-300'}`}>
+              <span className={`font-bold px-2 py-0.5 rounded text-[10px] sm:text-xs ${netProfit >= 0 ? 'bg-emerald-950/80 text-emerald-300' : 'bg-rose-950/80 text-rose-300'}`}>
                 {netProfit >= 0 ? 'موجب' : 'سالب'}
               </span>
             </div>
@@ -474,52 +474,52 @@ export function Profit() {
         </Card>
 
         {/* Total Income Profit Added Card */}
-        <Card className="border border-slate-200 dark:border-slate-800 shadow-sm">
-          <CardContent className="p-6">
+        <Card className="col-span-1 border border-slate-200 dark:border-slate-800 shadow-xs sm:shadow-sm">
+          <CardContent className="p-3.5 sm:p-6">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">إجمالي الإيرادات</span>
-              <div className="p-2 rounded-xl bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400">
-                <ArrowUpRight className="w-5 h-5" />
+              <span className="text-[11px] sm:text-xs font-semibold text-slate-500 dark:text-slate-400 truncate">إجمالي الإيرادات</span>
+              <div className="p-1.5 sm:p-2 rounded-lg sm:rounded-xl bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 shrink-0">
+                <ArrowUpRight className="w-4 h-4 sm:w-5 sm:h-5" />
               </div>
             </div>
-            <h3 className="text-2xl font-bold text-emerald-600 dark:text-emerald-400 mt-2">
+            <h3 className="text-base sm:text-2xl font-bold text-emerald-600 dark:text-emerald-400 mt-1.5 sm:mt-2 truncate">
               {formatCurrency(totalIncome, isRestricted)}
             </h3>
-            <p className="text-xs text-slate-400 mt-2">
-              {totalLateRevenue > 0 ? `تتضمن ${formatCurrency(totalLateRevenue, isRestricted)} إيرادات متأخرة` : '+ الإيرادات المضافة للأرباح'}
+            <p className="text-[10px] sm:text-xs text-slate-400 mt-1 sm:mt-2 truncate">
+              {totalLateRevenue > 0 ? `تتضمن ${formatCurrency(totalLateRevenue, isRestricted)} متأخرة` : '+ الإيرادات المضافة'}
             </p>
           </CardContent>
         </Card>
 
         {/* Total Operational Expenses Card */}
-        <Card className="border border-slate-200 dark:border-slate-800 shadow-sm">
-          <CardContent className="p-6">
+        <Card className="col-span-1 border border-slate-200 dark:border-slate-800 shadow-xs sm:shadow-sm">
+          <CardContent className="p-3.5 sm:p-6">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">إجمالي المصروفات</span>
-              <div className="p-2 rounded-xl bg-amber-100 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400">
-                <TrendingDown className="w-5 h-5" />
+              <span className="text-[11px] sm:text-xs font-semibold text-slate-500 dark:text-slate-400 truncate">إجمالي المصروفات</span>
+              <div className="p-1.5 sm:p-2 rounded-lg sm:rounded-xl bg-amber-100 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 shrink-0">
+                <TrendingDown className="w-4 h-4 sm:w-5 sm:h-5" />
               </div>
             </div>
-            <h3 className="text-2xl font-bold text-amber-600 dark:text-amber-400 mt-2">
+            <h3 className="text-base sm:text-2xl font-bold text-amber-600 dark:text-amber-400 mt-1.5 sm:mt-2 truncate">
               - {formatCurrency(totalExpense, isRestricted)}
             </h3>
-            <p className="text-xs text-slate-400 mt-2">المصروفات التشغيلية المخصومة</p>
+            <p className="text-[10px] sm:text-xs text-slate-400 mt-1 sm:mt-2 truncate">المصروفات التشغيلية</p>
           </CardContent>
         </Card>
 
         {/* Total Deductions / Withdrawals Card */}
-        <Card className="border border-slate-200 dark:border-slate-800 shadow-sm">
-          <CardContent className="p-6">
+        <Card className="col-span-2 sm:col-span-1 border border-slate-200 dark:border-slate-800 shadow-xs sm:shadow-sm">
+          <CardContent className="p-3.5 sm:p-6">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">إجمالي الخصومات والمسحوبات</span>
-              <div className="p-2 rounded-xl bg-rose-100 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400">
-                <ArrowDownLeft className="w-5 h-5" />
+              <span className="text-[11px] sm:text-xs font-semibold text-slate-500 dark:text-slate-400 truncate">الخصومات والمسحوبات</span>
+              <div className="p-1.5 sm:p-2 rounded-lg sm:rounded-xl bg-rose-100 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 shrink-0">
+                <ArrowDownLeft className="w-4 h-4 sm:w-5 sm:h-5" />
               </div>
             </div>
-            <h3 className="text-2xl font-bold text-rose-600 dark:text-rose-400 mt-2">
+            <h3 className="text-base sm:text-2xl font-bold text-rose-600 dark:text-rose-400 mt-1.5 sm:mt-2 truncate">
               - {formatCurrency(totalDeductions, isRestricted)}
             </h3>
-            <p className="text-xs text-slate-400 mt-2">
+            <p className="text-[10px] sm:text-xs text-slate-400 mt-1 sm:mt-2 truncate">
               {totalClientDebts > 0 ? `تتضمن ${formatCurrency(totalClientDebts, isRestricted)} ديون عملاء` : 'مسحوبات وخصومات الأرباح'}
             </p>
           </CardContent>
@@ -589,272 +589,451 @@ export function Profit() {
           </div>
         </CardHeader>
 
-        <CardContent className="p-0">
-          {/* TAB 1: DAILY SUMMARY TABLE (STRICTLY 4 COLUMNS: التاريخ | البيان | المبلغ | الرصيد التراكمي) */}
+        <CardContent className="p-3 sm:p-0">
+          {/* TAB 1: DAILY SUMMARY */}
           {activeTab === 'DAILY_SUMMARY' && (
-            <div className="overflow-x-auto">
-              <table className="w-full text-right text-sm">
-                <thead className="bg-slate-50 dark:bg-slate-800/80 text-slate-600 dark:text-slate-300 font-semibold text-xs border-b border-slate-200 dark:border-slate-700">
-                  <tr>
-                    <th className="px-5 py-3.5 whitespace-nowrap">التاريخ</th>
-                    <th className="px-5 py-3.5">البيان</th>
-                    <th className="px-5 py-3.5 whitespace-nowrap">المبلغ</th>
-                    <th className="px-5 py-3.5 whitespace-nowrap">الرصيد التراكمي</th>
-                    <th className="px-5 py-3.5 whitespace-nowrap text-center">التفاصيل</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-xs">
-                  {filteredDailySummaries.map((s) => {
-                    const isExpanded = !!expandedDates[s.dateKey];
+            <>
+              {/* Mobile Accordion Card View */}
+              <div className="md:hidden flex flex-col gap-2.5">
+                {filteredDailySummaries.map((s) => {
+                  const isExpanded = !!expandedDates[s.dateKey];
 
-                    return (
-                      <Fragment key={s.dateKey}>
-                        <tr className="hover:bg-slate-50/80 dark:hover:bg-slate-800/50 transition-colors">
-                          {/* 1. التاريخ */}
-                          <td className="px-5 py-3.5 whitespace-nowrap font-bold text-slate-900 dark:text-slate-100">
-                            <div className="flex items-center gap-2">
-                              <Clock className="w-4 h-4 text-primary-500" />
-                              <span>{s.displayDate}</span>
-                            </div>
-                          </td>
+                  return (
+                    <div key={s.dateKey} className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden shadow-xs">
+                      <div 
+                        onClick={() => toggleExpandDate(s.dateKey)}
+                        className="p-3.5 flex flex-col gap-2.5 cursor-pointer active:bg-slate-50 dark:active:bg-slate-700/50"
+                      >
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-1.5 font-bold text-xs text-slate-800 dark:text-slate-200">
+                            <Clock className="w-3.5 h-3.5 text-primary-500" />
+                            <span>{s.displayDate}</span>
+                          </div>
+                          <span className={`font-black text-xs px-2.5 py-1 rounded-md ${
+                            s.dailyNetProfit >= 0
+                              ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300'
+                              : 'bg-rose-50 text-rose-700 dark:bg-rose-950/60 dark:text-rose-300'
+                          }`}>
+                            {s.dailyNetProfit >= 0 ? '+' : ''}{formatCurrency(s.dailyNetProfit, isRestricted)}
+                          </span>
+                        </div>
 
-                          {/* 2. البيان */}
-                          <td className="px-5 py-3.5 font-medium text-slate-700 dark:text-slate-300">
-                            <span>صافي حركات اليوم ({s.movementsCount} حركة)</span>
-                          </td>
-
-                          {/* 3. المبلغ (صافي الربح اليومي بعد الخصم) */}
-                          <td className="px-5 py-3.5 whitespace-nowrap">
-                            <span className={`font-bold text-sm px-2.5 py-1 rounded-md ${
-                              s.dailyNetProfit >= 0
-                                ? 'bg-emerald-100/80 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300'
-                                : 'bg-rose-100/80 text-rose-800 dark:bg-rose-950/60 dark:text-rose-300'
-                            }`}>
-                              {s.dailyNetProfit >= 0 ? '+' : ''}{formatCurrency(s.dailyNetProfit, isRestricted)}
-                            </span>
-                          </td>
-
-                          {/* 4. الرصيد التراكمي */}
-                          <td className="px-5 py-3.5 whitespace-nowrap">
-                            <span className={`font-extrabold text-sm px-3 py-1.5 rounded-lg ${
-                              s.cumulativeBalance >= 0 
-                                ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-200/50' 
-                                : 'bg-rose-50 text-rose-700 dark:bg-rose-950/60 dark:text-rose-300 border border-rose-200/50'
-                            }`}>
+                        <div className="flex items-center justify-between pt-1 border-t border-slate-100 dark:border-slate-700/50 text-xs">
+                          <div className="flex items-center gap-1.5 text-slate-500">
+                            <span>الرصيد التراكمي:</span>
+                            <span className={`font-bold ${s.cumulativeBalance >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
                               {formatCurrency(s.cumulativeBalance, isRestricted)}
                             </span>
-                          </td>
+                          </div>
+                          <button
+                            type="button"
+                            className="inline-flex items-center gap-1 text-[11px] font-semibold text-primary-600 dark:text-primary-400"
+                          >
+                            <span>{s.movementsCount} حركة</span>
+                            {isExpanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+                          </button>
+                        </div>
+                      </div>
 
-                          {/* Action Expand */}
-                          <td className="px-5 py-3.5 whitespace-nowrap text-center">
-                            <button
-                              type="button"
-                              onClick={() => toggleExpandDate(s.dateKey)}
-                              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
-                            >
-                              <span>{s.movementsCount} حركة</span>
-                              {isExpanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
-                            </button>
-                          </td>
-                        </tr>
-
-                        {/* Collapsible Inner Movements for this Day */}
-                        {isExpanded && (
-                          <tr>
-                            <td colSpan={5} className="bg-slate-50/60 dark:bg-slate-900/40 px-6 py-3">
-                              <div className="bg-white dark:bg-slate-800/90 rounded-xl border border-slate-200/80 dark:border-slate-700 p-3 space-y-2">
-                                <h4 className="font-bold text-xs text-slate-700 dark:text-slate-300 flex items-center gap-1.5 pb-2 border-b border-slate-100 dark:border-slate-700">
-                                  <span>تفاصيل حركات يوم {s.displayDate}</span>
-                                </h4>
-                                <div className="divide-y divide-slate-100 dark:divide-slate-700/60">
-                                  {s.movements.map((m) => (
-                                    <div key={m.id} className="py-2 flex items-center justify-between text-xs gap-3">
-                                      <div className="flex items-center gap-2">
-                                        <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
-                                          m.type === 'INCOME' 
-                                            ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300'
-                                            : m.type === 'LATE_INCOME'
-                                            ? 'bg-teal-100 text-teal-800 dark:bg-teal-950/60 dark:text-teal-300'
-                                            : m.type === 'EXPENSE'
-                                            ? 'bg-amber-100 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300'
-                                            : m.type === 'CLIENT_DEBT'
-                                            ? 'bg-rose-100 text-rose-800 dark:bg-rose-950/60 dark:text-rose-300'
-                                            : 'bg-purple-100 text-purple-700 dark:bg-purple-950/60 dark:text-purple-300'
-                                        }`}>
-                                          {m.type === 'INCOME' 
-                                            ? 'إيراد' 
-                                            : m.type === 'LATE_INCOME'
-                                            ? 'إيرادات متأخرة'
-                                            : m.type === 'EXPENSE'
-                                            ? 'مصروف'
-                                            : m.type === 'CLIENT_DEBT'
-                                            ? 'دين عليه'
-                                            : 'سحب أرباح'}
-                                        </span>
-                                        <span className="font-medium text-slate-800 dark:text-slate-200">{m.description}</span>
-                                      </div>
-                                      <div className="flex items-center gap-4">
-                                        <span className={`font-bold ${
-                                          m.netImpact > 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'
-                                        }`}>
-                                          {m.netImpact > 0 ? '+' : ''}{formatCurrency(m.netImpact, isRestricted)}
-                                        </span>
-                                      </div>
-                                    </div>
-                                  ))}
+                      {isExpanded && (
+                        <div className="bg-slate-50 dark:bg-slate-900/40 p-3 border-t border-slate-200 dark:border-slate-700 space-y-2">
+                          <div className="divide-y divide-slate-200/60 dark:divide-slate-700/60">
+                            {s.movements.map((m) => (
+                              <div key={m.id} className="py-2 flex items-center justify-between text-xs gap-2">
+                                <div className="flex items-center gap-2 min-w-0">
+                                  <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold shrink-0 ${
+                                    m.type === 'INCOME' 
+                                      ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300'
+                                      : m.type === 'LATE_INCOME'
+                                      ? 'bg-teal-100 text-teal-800 dark:bg-teal-950/60 dark:text-teal-300'
+                                      : m.type === 'EXPENSE'
+                                      ? 'bg-amber-100 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300'
+                                      : m.type === 'CLIENT_DEBT'
+                                      ? 'bg-rose-100 text-rose-800 dark:bg-rose-950/60 dark:text-rose-300'
+                                      : 'bg-purple-100 text-purple-700 dark:bg-purple-950/60 dark:text-purple-300'
+                                  }`}>
+                                    {m.type === 'INCOME' 
+                                      ? 'إيراد' 
+                                      : m.type === 'LATE_INCOME'
+                                      ? 'متأخرات'
+                                      : m.type === 'EXPENSE'
+                                      ? 'مصروف'
+                                      : m.type === 'CLIENT_DEBT'
+                                      ? 'دين'
+                                      : 'سحب'}
+                                  </span>
+                                  <span className="font-medium text-slate-700 dark:text-slate-300 truncate">{m.description}</span>
                                 </div>
+                                <span className={`font-bold shrink-0 ${
+                                  m.netImpact > 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'
+                                }`}>
+                                  {m.netImpact > 0 ? '+' : ''}{formatCurrency(m.netImpact, isRestricted)}
+                                </span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+
+                {filteredDailySummaries.length === 0 && (
+                  <div className="text-center py-10 text-slate-500 dark:text-slate-400">
+                    <Wallet className="w-8 h-8 text-slate-300 dark:text-slate-600 mx-auto mb-2" />
+                    <p className="font-medium text-xs">لا توجد حركات أرباح مسجلة</p>
+                  </div>
+                )}
+              </div>
+
+              {/* Desktop Table View */}
+              <div className="hidden md:block overflow-x-auto">
+                <table className="w-full text-right text-sm">
+                  <thead className="bg-slate-50 dark:bg-slate-800/80 text-slate-600 dark:text-slate-300 font-semibold text-xs border-b border-slate-200 dark:border-slate-700">
+                    <tr>
+                      <th className="px-5 py-3.5 whitespace-nowrap">التاريخ</th>
+                      <th className="px-5 py-3.5">البيان</th>
+                      <th className="px-5 py-3.5 whitespace-nowrap">المبلغ</th>
+                      <th className="px-5 py-3.5 whitespace-nowrap">الرصيد التراكمي</th>
+                      <th className="px-5 py-3.5 whitespace-nowrap text-center">التفاصيل</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-xs">
+                    {filteredDailySummaries.map((s) => {
+                      const isExpanded = !!expandedDates[s.dateKey];
+
+                      return (
+                        <Fragment key={s.dateKey}>
+                          <tr className="hover:bg-slate-50/80 dark:hover:bg-slate-800/50 transition-colors">
+                            {/* 1. التاريخ */}
+                            <td className="px-5 py-3.5 whitespace-nowrap font-bold text-slate-900 dark:text-slate-100">
+                              <div className="flex items-center gap-2">
+                                <Clock className="w-4 h-4 text-primary-500" />
+                                <span>{s.displayDate}</span>
                               </div>
                             </td>
-                          </tr>
-                        )}
-                      </Fragment>
-                    );
-                  })}
 
-                  {filteredDailySummaries.length === 0 && (
-                    <tr>
-                      <td colSpan={5} className="text-center py-12 text-slate-500 dark:text-slate-400">
-                        <div className="flex flex-col items-center justify-center gap-2">
-                          <Wallet className="w-10 h-10 text-slate-300 dark:text-slate-600" />
-                          <p className="font-medium text-sm">لا توجد حركات أرباح مسجلة أو مطابقة للبحث</p>
-                        </div>
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
+                            {/* 2. البيان */}
+                            <td className="px-5 py-3.5 font-medium text-slate-700 dark:text-slate-300">
+                              <span>صافي حركات اليوم ({s.movementsCount} حركة)</span>
+                            </td>
+
+                            {/* 3. المبلغ (صافي الربح اليومي بعد الخصم) */}
+                            <td className="px-5 py-3.5 whitespace-nowrap">
+                              <span className={`font-bold text-sm px-2.5 py-1 rounded-md ${
+                                s.dailyNetProfit >= 0
+                                  ? 'bg-emerald-100/80 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300'
+                                  : 'bg-rose-100/80 text-rose-800 dark:bg-rose-950/60 dark:text-rose-300'
+                              }`}>
+                                {s.dailyNetProfit >= 0 ? '+' : ''}{formatCurrency(s.dailyNetProfit, isRestricted)}
+                              </span>
+                            </td>
+
+                            {/* 4. الرصيد التراكمي */}
+                            <td className="px-5 py-3.5 whitespace-nowrap">
+                              <span className={`font-extrabold text-sm px-3 py-1.5 rounded-lg ${
+                                s.cumulativeBalance >= 0 
+                                  ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-200/50' 
+                                  : 'bg-rose-50 text-rose-700 dark:bg-rose-950/60 dark:text-rose-300 border border-rose-200/50'
+                              }`}>
+                                {formatCurrency(s.cumulativeBalance, isRestricted)}
+                              </span>
+                            </td>
+
+                            {/* Action Expand */}
+                            <td className="px-5 py-3.5 whitespace-nowrap text-center">
+                              <button
+                                type="button"
+                                onClick={() => toggleExpandDate(s.dateKey)}
+                                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
+                              >
+                                <span>{s.movementsCount} حركة</span>
+                                {isExpanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+                              </button>
+                            </td>
+                          </tr>
+
+                          {/* Collapsible Inner Movements for this Day */}
+                          {isExpanded && (
+                            <tr>
+                              <td colSpan={5} className="bg-slate-50/60 dark:bg-slate-900/40 px-6 py-3">
+                                <div className="bg-white dark:bg-slate-800/90 rounded-xl border border-slate-200/80 dark:border-slate-700 p-3 space-y-2">
+                                  <h4 className="font-bold text-xs text-slate-700 dark:text-slate-300 flex items-center gap-1.5 pb-2 border-b border-slate-100 dark:border-slate-700">
+                                    <span>تفاصيل حركات يوم {s.displayDate}</span>
+                                  </h4>
+                                  <div className="divide-y divide-slate-100 dark:divide-slate-700/60">
+                                    {s.movements.map((m) => (
+                                      <div key={m.id} className="py-2 flex items-center justify-between text-xs gap-3">
+                                        <div className="flex items-center gap-2">
+                                          <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                                            m.type === 'INCOME' 
+                                              ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300'
+                                              : m.type === 'LATE_INCOME'
+                                              ? 'bg-teal-100 text-teal-800 dark:bg-teal-950/60 dark:text-teal-300'
+                                              : m.type === 'EXPENSE'
+                                              ? 'bg-amber-100 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300'
+                                              : m.type === 'CLIENT_DEBT'
+                                              ? 'bg-rose-100 text-rose-800 dark:bg-rose-950/60 dark:text-rose-300'
+                                              : 'bg-purple-100 text-purple-700 dark:bg-purple-950/60 dark:text-purple-300'
+                                          }`}>
+                                            {m.type === 'INCOME' 
+                                              ? 'إيراد' 
+                                              : m.type === 'LATE_INCOME'
+                                              ? 'إيرادات متأخرة'
+                                              : m.type === 'EXPENSE'
+                                              ? 'مصروف'
+                                              : m.type === 'CLIENT_DEBT'
+                                              ? 'دين عليه'
+                                              : 'سحب أرباح'}
+                                          </span>
+                                          <span className="font-medium text-slate-800 dark:text-slate-200">{m.description}</span>
+                                        </div>
+                                        <div className="flex items-center gap-4">
+                                          <span className={`font-bold ${
+                                            m.netImpact > 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'
+                                          }`}>
+                                            {m.netImpact > 0 ? '+' : ''}{formatCurrency(m.netImpact, isRestricted)}
+                                          </span>
+                                        </div>
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+                              </td>
+                            </tr>
+                          )}
+                        </Fragment>
+                      );
+                    })}
+
+                    {filteredDailySummaries.length === 0 && (
+                      <tr>
+                        <td colSpan={5} className="text-center py-12 text-slate-500 dark:text-slate-400">
+                          <div className="flex flex-col items-center justify-center gap-2">
+                            <Wallet className="w-10 h-10 text-slate-300 dark:text-slate-600" />
+                            <p className="font-medium text-sm">لا توجد حركات أرباح مسجلة أو مطابقة للبحث</p>
+                          </div>
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </>
           )}
 
-          {/* TAB 2: DETAILED LOG TABLE (STRICTLY 4 COLUMNS: التاريخ | البيان | المبلغ | الرصيد التراكمي) */}
+          {/* TAB 2: DETAILED LOG */}
           {activeTab === 'DETAILED_LOG' && (
-            <div className="overflow-x-auto">
-              <table className="w-full text-right text-sm">
-                <thead className="bg-slate-50 dark:bg-slate-800/80 text-slate-600 dark:text-slate-300 font-semibold text-xs border-b border-slate-200 dark:border-slate-700">
-                  <tr>
-                    <th className="px-5 py-3.5 whitespace-nowrap">التاريخ</th>
-                    <th className="px-5 py-3.5">البيان</th>
-                    <th className="px-5 py-3.5 whitespace-nowrap">المبلغ</th>
-                    <th className="px-5 py-3.5 whitespace-nowrap">الرصيد التراكمي</th>
-                    {canManage && <th className="px-5 py-3.5 whitespace-nowrap text-center">إجراءات</th>}
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-xs">
-                  {filteredMovements.map((m) => {
-                    const isIncome = m.type === 'INCOME';
-                    const isLateIncome = m.type === 'LATE_INCOME';
-                    const isExpense = m.type === 'EXPENSE';
-                    const isDeduction = m.type === 'DEDUCTION';
-                    const isClientDebt = m.type === 'CLIENT_DEBT';
+            <>
+              {/* Mobile Cards View */}
+              <div className="md:hidden flex flex-col gap-2.5">
+                {filteredMovements.map((m) => {
+                  const isIncome = m.type === 'INCOME';
+                  const isLateIncome = m.type === 'LATE_INCOME';
+                  const isExpense = m.type === 'EXPENSE';
+                  const isDeduction = m.type === 'DEDUCTION';
+                  const isClientDebt = m.type === 'CLIENT_DEBT';
 
-                    return (
-                      <tr 
-                        key={m.id} 
-                        className={`hover:bg-slate-50/80 dark:hover:bg-slate-800/50 transition-colors ${
-                          isDeduction || isClientDebt ? 'bg-rose-50/30 dark:bg-rose-950/10' : ''
-                        }`}
-                      >
-                        {/* 1. التاريخ */}
-                        <td className="px-5 py-3.5 whitespace-nowrap font-medium text-slate-700 dark:text-slate-300">
+                  return (
+                    <div key={m.id} className="bg-white dark:bg-slate-800 p-3.5 rounded-xl border border-slate-200 dark:border-slate-700 shadow-xs flex flex-col gap-2">
+                      <div className="flex justify-between items-center">
+                        <span className="text-[11px] text-slate-500">
                           {new Date(m.date).toLocaleDateString('ar-EG', {
                             year: 'numeric',
                             month: '2-digit',
                             day: '2-digit'
                           })}
-                        </td>
+                        </span>
+                        <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                          isIncome 
+                            ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300'
+                            : isLateIncome
+                            ? 'bg-teal-100 text-teal-800 dark:bg-teal-950/60 dark:text-teal-300'
+                            : isExpense
+                            ? 'bg-amber-100 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300'
+                            : isClientDebt
+                            ? 'bg-rose-100 text-rose-800 dark:bg-rose-950/60 dark:text-rose-300'
+                            : 'bg-purple-100 text-purple-700 dark:bg-purple-950/60 dark:text-purple-300'
+                        }`}>
+                          {isIncome ? 'إيراد' : isLateIncome ? 'إيرادات متأخرة' : isExpense ? 'مصروف' : isClientDebt ? 'دين عليه' : 'سحب أرباح'}
+                        </span>
+                      </div>
 
-                        {/* 2. البيان */}
-                        <td className="px-5 py-3.5 font-medium text-slate-900 dark:text-slate-100 max-w-[340px]">
-                          <div className="flex items-center gap-2">
-                            <span className={`px-2 py-0.5 rounded text-[10px] font-bold whitespace-nowrap ${
-                              isIncome 
-                                ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300'
-                                : isLateIncome
-                                ? 'bg-teal-100 text-teal-800 dark:bg-teal-950/60 dark:text-teal-300'
-                                : isExpense
-                                ? 'bg-amber-100 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300'
-                                : isClientDebt
-                                ? 'bg-rose-100 text-rose-800 dark:bg-rose-950/60 dark:text-rose-300'
-                                : 'bg-purple-100 text-purple-700 dark:bg-purple-950/60 dark:text-purple-300'
-                            }`}>
-                              {isIncome 
-                                ? 'إيراد' 
-                                : isLateIncome 
-                                ? 'إيرادات متأخرة' 
-                                : isExpense 
-                                ? 'مصروف' 
-                                : isClientDebt 
-                                ? 'دين عليه (خصم)' 
-                                : 'سحب أرباح'}
-                            </span>
-                            <span className="truncate">{m.description}</span>
-                          </div>
-                        </td>
+                      <div className="flex justify-between items-center gap-2">
+                        <span className="font-bold text-xs text-slate-800 dark:text-slate-200 truncate">{m.description}</span>
+                        <span className={`font-black text-xs shrink-0 ${m.netImpact > 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
+                          {m.netImpact > 0 ? '+' : ''}{formatCurrency(m.netImpact, isRestricted)}
+                        </span>
+                      </div>
 
-                        {/* 3. المبلغ */}
-                        <td className="px-5 py-3.5 whitespace-nowrap font-bold text-xs">
-                          <span className={m.netImpact > 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}>
-                            {m.netImpact > 0 ? '+' : ''}{formatCurrency(m.netImpact, isRestricted)}
-                          </span>
-                        </td>
-
-                        {/* 4. الرصيد التراكمي */}
-                        <td className="px-5 py-3.5 whitespace-nowrap">
-                          <span className={`font-extrabold text-xs px-2.5 py-1 rounded-lg ${
-                            m.cumulativeBalance >= 0 
-                              ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300' 
-                              : 'bg-rose-50 text-rose-700 dark:bg-rose-950/50 dark:text-rose-300'
-                          }`}>
+                      <div className="flex justify-between items-center pt-1.5 border-t border-slate-100 dark:border-slate-700 text-xs">
+                        <div className="flex items-center gap-1 text-slate-500">
+                          <span className="text-[11px]">الرصيد:</span>
+                          <span className={`font-bold text-[11px] ${m.cumulativeBalance >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
                             {formatCurrency(m.cumulativeBalance, isRestricted)}
                           </span>
-                        </td>
-
-                        {/* Actions */}
-                        {canManage && (
-                          <td className="px-5 py-3.5 whitespace-nowrap text-center">
-                            {isDeduction ? (
-                              <div className="flex items-center justify-center gap-1">
-                                <button
-                                  type="button"
-                                  onClick={() => handleOpenEdit(m.originalId, m.deduction, m.description, m.date)}
-                                  className="p-1.5 rounded-lg text-slate-500 hover:text-primary-600 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
-                                  title="تعديل الخصم"
-                                >
-                                  <Edit2 className="w-4 h-4" />
-                                </button>
-                                <button
-                                  type="button"
-                                  onClick={() => onRequestDelete(m)}
-                                  className="p-1.5 rounded-lg text-slate-500 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors"
-                                  title="حذف الخصم"
-                                >
-                                  <Trash2 className="w-4 h-4" />
-                                </button>
-                              </div>
-                            ) : (isClientDebt || isLateIncome) ? (
-                              <span className="text-[11px] text-slate-400" title="تُدار حركات العملاء من صفحة العملاء">من صفحة العملاء</span>
-                            ) : (
-                              <span className="text-[11px] text-slate-400">-</span>
-                            )}
-                          </td>
-                        )}
-                      </tr>
-                    );
-                  })}
-
-                  {filteredMovements.length === 0 && (
-                    <tr>
-                      <td colSpan={canManage ? 5 : 4} className="text-center py-12 text-slate-500 dark:text-slate-400">
-                        <div className="flex flex-col items-center justify-center gap-2">
-                          <Wallet className="w-10 h-10 text-slate-300 dark:text-slate-600" />
-                          <p className="font-medium text-sm">لا توجد حركات أرباح مطابقة للبحث أو الفلتر الحالي</p>
                         </div>
-                      </td>
+
+                        {canManage && isDeduction && (
+                          <div className="flex items-center gap-1">
+                            <button
+                              type="button"
+                              onClick={() => handleOpenEdit(m.originalId, m.deduction, m.description, m.date)}
+                              className="p-1 rounded text-slate-500 hover:text-primary-600"
+                            >
+                              <Edit2 className="w-3.5 h-3.5" />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => onRequestDelete(m)}
+                              className="p-1 rounded text-slate-500 hover:text-rose-600"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+
+                {filteredMovements.length === 0 && (
+                  <div className="text-center py-10 text-slate-500 dark:text-slate-400">
+                    <Wallet className="w-8 h-8 text-slate-300 dark:text-slate-600 mx-auto mb-2" />
+                    <p className="font-medium text-xs">لا توجد حركات أرباح مطابقة</p>
+                  </div>
+                )}
+              </div>
+
+              {/* Desktop Table View */}
+              <div className="hidden md:block overflow-x-auto">
+                <table className="w-full text-right text-sm">
+                  <thead className="bg-slate-50 dark:bg-slate-800/80 text-slate-600 dark:text-slate-300 font-semibold text-xs border-b border-slate-200 dark:border-slate-700">
+                    <tr>
+                      <th className="px-5 py-3.5 whitespace-nowrap">التاريخ</th>
+                      <th className="px-5 py-3.5">البيان</th>
+                      <th className="px-5 py-3.5 whitespace-nowrap">المبلغ</th>
+                      <th className="px-5 py-3.5 whitespace-nowrap">الرصيد التراكمي</th>
+                      {canManage && <th className="px-5 py-3.5 whitespace-nowrap text-center">إجراءات</th>}
                     </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-xs">
+                    {filteredMovements.map((m) => {
+                      const isIncome = m.type === 'INCOME';
+                      const isLateIncome = m.type === 'LATE_INCOME';
+                      const isExpense = m.type === 'EXPENSE';
+                      const isDeduction = m.type === 'DEDUCTION';
+                      const isClientDebt = m.type === 'CLIENT_DEBT';
+
+                      return (
+                        <tr 
+                          key={m.id} 
+                          className={`hover:bg-slate-50/80 dark:hover:bg-slate-800/50 transition-colors ${
+                            isDeduction || isClientDebt ? 'bg-rose-50/30 dark:bg-rose-950/10' : ''
+                          }`}
+                        >
+                          {/* 1. التاريخ */}
+                          <td className="px-5 py-3.5 whitespace-nowrap font-medium text-slate-700 dark:text-slate-300">
+                            {new Date(m.date).toLocaleDateString('ar-EG', {
+                              year: 'numeric',
+                              month: '2-digit',
+                              day: '2-digit'
+                            })}
+                          </td>
+
+                          {/* 2. البيان */}
+                          <td className="px-5 py-3.5 font-medium text-slate-900 dark:text-slate-100 max-w-[340px]">
+                            <div className="flex items-center gap-2">
+                              <span className={`px-2 py-0.5 rounded text-[10px] font-bold whitespace-nowrap ${
+                                isIncome 
+                                  ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300'
+                                  : isLateIncome
+                                  ? 'bg-teal-100 text-teal-800 dark:bg-teal-950/60 dark:text-teal-300'
+                                  : isExpense
+                                  ? 'bg-amber-100 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300'
+                                  : isClientDebt
+                                  ? 'bg-rose-100 text-rose-800 dark:bg-rose-950/60 dark:text-rose-300'
+                                  : 'bg-purple-100 text-purple-700 dark:bg-purple-950/60 dark:text-purple-300'
+                              }`}>
+                                {isIncome 
+                                  ? 'إيراد' 
+                                  : isLateIncome 
+                                  ? 'إيرادات متأخرة' 
+                                  : isExpense 
+                                  ? 'مصروف' 
+                                  : isClientDebt 
+                                  ? 'دين عليه (خصم)' 
+                                  : 'سحب أرباح'}
+                              </span>
+                              <span className="truncate">{m.description}</span>
+                            </div>
+                          </td>
+
+                          {/* 3. المبلغ */}
+                          <td className="px-5 py-3.5 whitespace-nowrap font-bold text-xs">
+                            <span className={m.netImpact > 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}>
+                              {m.netImpact > 0 ? '+' : ''}{formatCurrency(m.netImpact, isRestricted)}
+                            </span>
+                          </td>
+
+                          {/* 4. الرصيد التراكمي */}
+                          <td className="px-5 py-3.5 whitespace-nowrap">
+                            <span className={`font-extrabold text-xs px-2.5 py-1 rounded-lg ${
+                              m.cumulativeBalance >= 0 
+                                ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300' 
+                                : 'bg-rose-50 text-rose-700 dark:bg-rose-950/50 dark:text-rose-300'
+                            }`}>
+                              {formatCurrency(m.cumulativeBalance, isRestricted)}
+                            </span>
+                          </td>
+
+                          {/* Actions */}
+                          {canManage && (
+                            <td className="px-5 py-3.5 whitespace-nowrap text-center">
+                              {isDeduction ? (
+                                <div className="flex items-center justify-center gap-1">
+                                  <button
+                                    type="button"
+                                    onClick={() => handleOpenEdit(m.originalId, m.deduction, m.description, m.date)}
+                                    className="p-1.5 rounded-lg text-slate-500 hover:text-primary-600 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
+                                    title="تعديل الخصم"
+                                  >
+                                    <Edit2 className="w-4 h-4" />
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => onRequestDelete(m)}
+                                    className="p-1.5 rounded-lg text-slate-500 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors"
+                                    title="حذف الخصم"
+                                  >
+                                    <Trash2 className="w-4 h-4" />
+                                  </button>
+                                </div>
+                              ) : (isClientDebt || isLateIncome) ? (
+                                <span className="text-[11px] text-slate-400" title="تُدار حركات العملاء من صفحة العملاء">من صفحة العملاء</span>
+                              ) : (
+                                <span className="text-[11px] text-slate-400">-</span>
+                              )}
+                            </td>
+                          )}
+                        </tr>
+                      );
+                    })}
+
+                    {filteredMovements.length === 0 && (
+                      <tr>
+                        <td colSpan={canManage ? 5 : 4} className="text-center py-12 text-slate-500 dark:text-slate-400">
+                          <div className="flex flex-col items-center justify-center gap-2">
+                            <Wallet className="w-10 h-10 text-slate-300 dark:text-slate-600" />
+                            <p className="font-medium text-sm">لا توجد حركات أرباح مطابقة للبحث أو الفلتر الحالي</p>
+                          </div>
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </>
           )}
         </CardContent>
       </Card>

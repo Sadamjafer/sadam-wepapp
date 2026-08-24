@@ -19,6 +19,37 @@ export default function App() {
   const [newerBackupAvailable, setNewerBackupAvailable] = useState(false);
   const [isVerifying, setIsVerifying] = useState(true);
 
+  // Auto Logout Logic
+  useEffect(() => {
+    if (!auth.isLoggedIn) return;
+
+    let timeoutId: any;
+    const logout = useStore.getState().logout;
+
+    const resetTimer = () => {
+      clearTimeout(timeoutId);
+      // 15 minutes of inactivity = 900000 ms
+      timeoutId = setTimeout(() => {
+        logout();
+      }, 900000); 
+    };
+
+    // Track user activity
+    const events = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart'];
+    events.forEach(name => document.addEventListener(name, resetTimer, true));
+    resetTimer(); // Start timer initially
+
+    // Logout when exiting the app (closing tab/window)
+    const handleUnload = () => logout();
+    window.addEventListener('beforeunload', handleUnload);
+
+    return () => {
+      events.forEach(name => document.removeEventListener(name, resetTimer, true));
+      window.removeEventListener('beforeunload', handleUnload);
+      clearTimeout(timeoutId);
+    };
+  }, [auth.isLoggedIn]);
+
   useEffect(() => {
     let unsubscribeStore: () => void;
     let authUnsubscribe: () => void;

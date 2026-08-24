@@ -138,7 +138,45 @@ export function Income() {
           <CardTitle>سجل الإيرادات</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="overflow-x-auto">
+          {/* Mobile Cards View */}
+          <div className="md:hidden flex flex-col gap-3">
+            {storeRecords.map((record) => (
+              <div key={record.id} className="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm flex flex-col gap-3">
+                <div className="flex justify-between items-center">
+                  <span className="text-xs font-medium text-slate-500">{record.date ? record.date.split('T')[0] : '-'}</span>
+                  <div className="flex items-center gap-1">
+                    <Button variant="ghost" size="icon" className="h-8 w-8 text-blue-600 bg-blue-50 dark:bg-blue-900/30 dark:hover:bg-blue-900/50" onClick={() => handleOpenEditModal(record)}>
+                      <Edit2 className="w-4 h-4" />
+                    </Button>
+                    <Button variant="ghost" size="icon" className="h-8 w-8 text-rose-600 bg-rose-50 dark:bg-rose-900/30 dark:hover:bg-rose-900/50" onClick={() => setDeletingRecordId(record.id)}>
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </div>
+                <div className="flex justify-between items-end">
+                  <div>
+                    <div className="text-sm text-slate-500 mb-1">المبلغ</div>
+                    <div className="text-lg font-bold text-emerald-600">{formatCurrency(record.amount, isRestricted)}</div>
+                  </div>
+                  <div className="text-left">
+                    <div className="text-sm text-slate-500 mb-1">الوحدات</div>
+                    <div className="font-bold">{record.units || '-'}</div>
+                  </div>
+                </div>
+                {record.notes && (
+                  <div className="text-sm text-slate-600 dark:text-slate-400 bg-slate-50 dark:bg-slate-900/50 p-2 rounded-lg">
+                    {record.notes}
+                  </div>
+                )}
+              </div>
+            ))}
+            {storeRecords.length === 0 && (
+              <div className="text-center p-6 text-slate-500">لا توجد إيرادات مسجلة</div>
+            )}
+          </div>
+          
+          {/* Desktop Table View */}
+          <div className="hidden md:block overflow-x-auto">
             <table className="w-full text-sm text-right">
               <thead className="text-xs text-slate-500 uppercase bg-slate-50 dark:bg-slate-800/50">
                 <tr>
@@ -243,6 +281,17 @@ export function Income() {
           </div>
         </div>
       </Modal>
+
+      {/* Mobile FAB */}
+      <div className="md:hidden fixed bottom-20 left-4 z-40">
+        <Button 
+          className="h-14 w-14 rounded-full shadow-lg bg-emerald-600 hover:bg-emerald-700 flex items-center justify-center p-0"
+          onClick={handleOpenAddModal}
+        >
+          <Plus className="w-6 h-6 text-white" />
+        </Button>
+      </div>
+
     </div>
   );
 }

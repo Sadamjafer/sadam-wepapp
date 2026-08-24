@@ -473,7 +473,68 @@ export function Clients() {
     }
 
     return (
-      <div className="overflow-x-auto">
+<>
+{/* Mobile Cards View */}
+      <div className="md:hidden flex flex-col gap-3">
+        {opsList.map((op, idx) => {
+          const isDebt = op.type === 'DEBT';
+          const cumBal = op.cumulativeBalance;
+          const isSupp = op.clientType === 'SUPPLIER';
+
+          return (
+            <div key={op.id} className="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700 flex flex-col gap-3">
+              <div className="flex justify-between items-start">
+                <div>
+                  <div className="font-bold text-slate-900 dark:text-slate-100">{op.clientName}</div>
+                  <div className="text-xs text-slate-500 font-mono mt-1">{op.date ? op.date.split('T')[0] : '-'}</div>
+                </div>
+                <span className={`inline-flex items-center px-2 py-0.5 rounded-lg text-xs font-bold ${isDebt ? (isSupp ? 'bg-purple-100 text-purple-700' : 'bg-rose-100 text-rose-700') : 'bg-emerald-100 text-emerald-700'}`}>
+                  {isDebt ? (isSupp ? 'وارد جديد (+)' : 'دين عليه (+)') : 'سداد (-)'}
+                </span>
+              </div>
+              
+              <div className="flex justify-between items-end border-y border-slate-100 dark:border-slate-700 py-2">
+                <div>
+                  <div className="text-xs text-slate-500 mb-1">المبلغ</div>
+                  <div className={`font-bold ${isDebt ? (isSupp ? 'text-purple-600' : 'text-rose-600') : 'text-emerald-600'}`}>
+                    {formatCurrency(op.amount, isRestricted)}
+                  </div>
+                </div>
+                <div className="text-left">
+                  <div className="text-xs text-slate-500 mb-1">الرصيد التراكمي</div>
+                  <span className={`px-2 py-0.5 rounded-md text-xs font-bold ${cumBal > 0 ? (isSupp ? 'bg-purple-50 text-purple-700' : 'bg-amber-50 text-amber-700') : cumBal < 0 ? 'bg-blue-50 text-blue-700' : 'bg-slate-100 text-slate-600'}`}>
+                    {cumBal > 0 ? (isSupp ? 'له: ' : 'عليه: ') : cumBal < 0 ? (isSupp ? 'عليه: ' : 'له: ') : ''}
+                    {formatCurrency(Math.abs(cumBal), isRestricted)}
+                  </span>
+                </div>
+              </div>
+
+              {op.description && (
+                <div className="text-sm text-slate-600 dark:text-slate-400 bg-slate-50 dark:bg-slate-900/50 p-2 rounded-lg">
+                  {op.description}
+                </div>
+              )}
+              
+              {canManage && (
+                <div className="flex items-center justify-end gap-2 mt-1">
+                  <Button variant="ghost" size="sm" className="h-8 text-blue-600" onClick={() => handleOpenEditOp(op)}>
+                    تعديل
+                  </Button>
+                  <Button variant="ghost" size="sm" className="h-8 text-rose-600" onClick={() => setDeletingOpId(op.id)}>
+                    حذف
+                  </Button>
+                </div>
+              )}
+            </div>
+          );
+        })}
+        {opsList.length === 0 && (
+          <div className="text-center p-6 text-slate-500">لا توجد عمليات بعد</div>
+        )}
+      </div>
+
+      {/* Desktop Table View */}
+      <div className="hidden md:block overflow-x-auto">
         <table className="w-full text-sm text-right">
           <thead className="text-xs font-semibold text-slate-500 bg-slate-100/70 dark:bg-slate-800/70 border-b dark:border-slate-700">
             <tr>
@@ -560,9 +621,10 @@ export function Clients() {
             })}
           </tbody>
         </table>
-      </div>
-    );
-  };
+</div>
+</>
+);
+};
 
   const renderLinkedExpensesTable = (expenseList: typeof supplierExpenseList) => {
     if (expenseList.length === 0) {
@@ -575,7 +637,23 @@ export function Clients() {
     }
 
     return (
-      <div className="overflow-x-auto">
+      <>
+      {/* Mobile Cards View */}
+      <div className="md:hidden flex flex-col gap-3">
+        {expenseList.map((tx, idx) => (
+          <div key={tx.id} className="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700 flex flex-col gap-2">
+            <div className="flex justify-between items-center">
+              <span className="text-xs font-medium text-slate-500">{tx.date}</span>
+              <span className={`font-bold ${tx.isSupplierPayment ? 'text-emerald-600' : 'text-purple-700'}`}>{tx.isSupplierPayment ? '-' : ''}{formatCurrency(tx.amount, isRestricted)}</span>
+            </div>
+            <div className="text-sm font-semibold">{tx.title}</div>
+            <div className="text-xs font-bold mt-1 text-slate-500">
+              الرصيد التراكمي: <span className={tx.cumulativeBalance < 0 ? 'text-emerald-600' : 'text-purple-600'}>{formatCurrency(Math.abs(tx.cumulativeBalance), isRestricted)}</span>
+            </div>
+          </div>
+        ))}
+      </div>
+      <div className="hidden md:block overflow-x-auto">
         <table className="w-full text-sm text-right">
           <thead className="text-xs font-semibold text-slate-500 bg-slate-100/70 dark:bg-slate-800/70 border-b dark:border-slate-700">
             <tr>
@@ -615,9 +693,10 @@ export function Clients() {
             ))}
           </tbody>
         </table>
-      </div>
-    );
-  };
+</div>
+</>
+);
+};
 
   const renderListView = () => {
     return (
@@ -1196,6 +1275,19 @@ export function Clients() {
           </div>
         </div>
       </Modal>
+
+      {/* Mobile FAB */}
+      <div className="md:hidden fixed bottom-20 left-4 z-40 flex flex-col gap-2">
+        {activeTab !== 'SUPPLIER_EXPENSES' && (
+          <Button 
+            className="h-14 w-14 rounded-full shadow-lg bg-primary-600 hover:bg-primary-700 flex items-center justify-center p-0"
+            onClick={handleOpenAddOp}
+          >
+            <Plus className="w-6 h-6 text-white" />
+          </Button>
+        )}
+      </div>
+
     </div>
   );
 }
